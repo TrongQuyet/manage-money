@@ -1,0 +1,7 @@
+{
+  "name": "GroupFund Manager Pro",
+  "description": "A comprehensive group fund management application featuring member tracking, role-based management, expense monitoring, and AI-powered financial insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
