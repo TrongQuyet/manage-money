@@ -13,9 +13,11 @@ interface Props {
   onUpdateTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
   isAdmin: boolean;
+  availableCategories?: { INCOME: string[]; EXPENSE: string[] };
 }
 
-const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpdateTransaction, onDeleteTransaction, isAdmin }) => {
+const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpdateTransaction, onDeleteTransaction, isAdmin, availableCategories }) => {
+  const CATS = availableCategories ?? CATEGORIES;
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
@@ -26,7 +28,7 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
     type: 'INCOME' as TransactionType,
     amount: 0,
     description: '',
-    category: CATEGORIES.INCOME[0],
+    category: (availableCategories ?? CATEGORIES).INCOME[0],
     recipient: '',
     date: new Date().toISOString().split('T')[0],
     memberId: state.members[0]?.id || ''
@@ -57,7 +59,7 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
     setNewTx({
       ...newTx,
       type,
-      category: CATEGORIES[type][0]
+      category: CATS[type][0]
     });
   };
 
@@ -282,7 +284,7 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Danh mục</label>
                 <select className="w-full px-4 py-3 bg-slate-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none appearance-none font-medium" value={newTx.category} onChange={(e) => setNewTx({...newTx, category: e.target.value})}>
-                  {CATEGORIES[newTx.type].map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  {CATS[newTx.type].map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
               </div>
               <div>
@@ -334,7 +336,7 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Danh mục</label>
                 <select className="w-full px-4 py-3 border border-gray-100 bg-slate-50 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none" value={editingTx.category} onChange={(e) => setEditingTx({...editingTx, category: e.target.value})}>
-                  {CATEGORIES[editingTx.type].map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  {CATS[editingTx.type].map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
               </div>
               <div>

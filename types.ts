@@ -19,12 +19,20 @@ export interface Member {
 
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
+export interface Category {
+  id: string;
+  name: string;
+  type: TransactionType;
+  isDefault: boolean;
+}
+
 export interface Transaction {
   id: string;
   type: TransactionType;
   amount: number;
   description: string;
-  category: string;
+  category: string;       // display name
+  categoryId?: string;    // UUID for API
   recipient: string;
   date: string;
   memberId: string;
@@ -33,11 +41,20 @@ export interface Transaction {
 export interface User {
   id: string;
   user_name: string;
-  password?: string;
+  display_name?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
 }
 
 export interface AppState {
   members: Member[];
   transactions: Transaction[];
+  categories: Category[];
   currentBalance: number;
+  orgId: string | null;
 }

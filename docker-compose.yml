@@ -4,6 +4,13 @@ services:
       context: .
       args:
         GEMINI_API_KEY: ${GEMINI_API_KEY}
+        VITE_API_URL: /api
     ports:
       - "3333:80"
     restart: unless-stopped
+    networks:
+      - manage_money_net
+
+networks:
+  manage_money_net:
+    external: true

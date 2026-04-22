@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { 
-  Users, 
-  CreditCard, 
-  PieChart, 
-  LayoutDashboard, 
+import {
+  Users,
+  CreditCard,
+  PieChart,
+  LayoutDashboard,
   Settings,
   BrainCircuit
 } from 'lucide-react';
@@ -16,23 +16,17 @@ export const NAVIGATION_ITEMS = [
   { id: 'transactions', label: 'Giao dịch', icon: <CreditCard className="w-5 h-5" /> },
   { id: 'reports', label: 'Báo cáo', icon: <PieChart className="w-5 h-5" /> },
   { id: 'ai-insights', label: 'AI Phân tích', icon: <BrainCircuit className="w-5 h-5" /> },
-  { id: 'settings', label: 'Trạng thái API', icon: <Settings className="w-5 h-5" /> },
+  { id: 'settings', label: 'Danh mục', icon: <Settings className="w-5 h-5" /> },
 ];
 
+// Fallback categories (used until API categories are loaded)
 export const CATEGORIES = {
   INCOME: ['Đóng quỹ định kỳ', 'Đóng góp tự nguyện', 'Tiền lãi', 'Khác'],
   EXPENSE: ['Ăn uống', 'Dịch vụ', 'Sự kiện', 'Cơ sở vật chất', 'Từ thiện', 'Khác']
 };
 
-export const API_CONFIG = {
-  MASTER_KEY: '$2a$10$.3/lYZ4z2aIuYmnsIy0v2OpD/NHbkR2WVOKDGiKCqMdt.ugJWR7oq',
-  BASE_URL: 'https://api.jsonbin.io/v3/b',
-  BIN_IDS: {
-    MEMBERS: '6971f111d0ea881f407cb8fd',
-    TRANSACTIONS: '6971f0e743b1c97be9414de0',
-    USERS: '6971fcf6ae596e708fed410a'
-  }
-};
+// Dev: http://localhost:3334/api | Docker: /api (nginx proxy)
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3334/api';
 
 export const INITIAL_MEMBERS: Member[] = [];
 export const INITIAL_TRANSACTIONS: Transaction[] = [];

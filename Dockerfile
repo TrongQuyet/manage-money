@@ -10,6 +10,10 @@ COPY . .
 ARG GEMINI_API_KEY
 ENV GEMINI_API_KEY=$GEMINI_API_KEY
 
+# Khi chạy trong Docker, nginx proxy /api → BE container, dùng đường dẫn tương đối
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
 
 FROM nginx:alpine
