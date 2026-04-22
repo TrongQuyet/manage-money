@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Member, Transaction, AppState, User, Organization, Category } from './types';
 import { NAVIGATION_ITEMS, CATEGORIES } from './constants';
 import Dashboard from './components/Dashboard';
@@ -25,6 +25,7 @@ const EMPTY_STATE: AppState = {
 
 const App: React.FC = () => {
   const { orgSlug } = useParams<{ orgSlug: string }>();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -34,17 +35,21 @@ const App: React.FC = () => {
 
   // Auth state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [orgRole, setOrgRole] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
-  // Org state — derived from URL slug, no switcher needed
+  // Org state
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [orgNotFound, setOrgNotFound] = useState(false);
 
   const [state, setState] = useState<AppState>(EMPTY_STATE);
 
-  // Derived categories for dropdowns
+  // isAdmin dựa trên role thực tế trong org, không phải chỉ "đã đăng nhập"
+  const isAdmin = orgRole != null && (orgRole.toUpperCase() === 'OWNER' || orgRole.toUpperCase() === 'ADMIN');
+  console.log('[isAdmin]', { orgRole, isAdmin });
+
   const availableCategories = {
     INCOME: state.categories.filter(c => c.type === 'INCOME').map(c => c.name),
     EXPENSE: state.categories.filter(c => c.type === 'EXPENSE').map(c => c.name),
@@ -54,59 +59,62 @@ const App: React.FC = () => {
     EXPENSE: availableCategories.EXPENSE.length > 0 ? availableCategories.EXPENSE : CATEGORIES.EXPENSE,
   };
 
-  // Load org data by slug
-  const loadOrgData = useCallback(async (slug: string) => {
-    setIsLoading(true);
-    try {
-      const [members, transactions, categories] = await Promise.all([
-        api.getMembers(slug),
-        api.getTransactions(slug),
-        api.getCategories(slug),
-      ]);
+  // Load dữ liệu org — public, không cần đăng nhập
+  // isLoggedIn dùng để quyết định có seed categories không (seed cần auth)
+  const loadOrgData = useCallback(async (slug: string, isLoggedIn: boolean) => {
+    const [members, transactions, categories] = await Promise.all([
+      api.getMembers(slug),
+      api.getTransactions(slug),
+      api.getCategories(slug),
+    ]);
 
-      const finalCategories = categories.length > 0
-        ? categories
-        : await api.seedCategories(slug);
-
-      const balance = transactions.reduce(
-        (acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0
-      );
-
-      setState({
-        members,
-        transactions,
-        categories: finalCategories,
-        currentBalance: balance,
-        orgId: slug,
-      });
-    } catch (err) {
-      console.error('Failed to load org data', err);
-    } finally {
-      setIsLoading(false);
+    let finalCategories = categories;
+    if (categories.length === 0 && isLoggedIn) {
+      finalCategories = await api.seedCategories(slug);
     }
+
+    const balance = transactions.reduce(
+      (acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0
+    );
+
+    setState({
+      members,
+      transactions,
+      categories: finalCategories,
+      currentBalance: balance,
+      orgId: slug,
+    });
   }, []);
 
-  // Init: check auth + load org from URL slug
-  const initOrgSession = useCallback(async (user: User) => {
-    if (!orgSlug) return;
+  // Khởi động org session — chạy bất kể đã đăng nhập hay chưa
+  const initOrgSession = useCallback(async (slug: string, user: User | null) => {
     setOrgNotFound(false);
-    const org = await api.getOrgBySlug(orgSlug);
+    const org = await api.getOrgBySlug(slug);
     if (!org) {
       setOrgNotFound(true);
       setIsLoading(false);
       return;
     }
     setCurrentOrg(org);
-    await loadOrgData(org.slug);
-  }, [orgSlug, loadOrgData]);
+
+    // Load data + nếu đã đăng nhập thì lấy role song song
+    const tasks: Promise<unknown>[] = [loadOrgData(org.slug, !!user)];
+    if (user) {
+      tasks.push(
+        api.getMyOrgRole(slug).then(({ role }) => setOrgRole(role))
+      );
+    }
+    await Promise.all(tasks);
+    setIsLoading(false);
+  }, [loadOrgData]);
 
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
       const user = await api.getMe();
-      if (user) {
-        setCurrentUser(user);
-        await initOrgSession(user);
+      if (user) setCurrentUser(user);
+      if (orgSlug) {
+        await initOrgSession(orgSlug, user);
       } else {
         setIsLoading(false);
       }
@@ -134,7 +142,27 @@ const App: React.FC = () => {
       setCurrentUser(result.user);
       setShowLoginModal(false);
       setLoginForm({ username: '', password: '' });
-      await initOrgSession(result.user);
+
+      // Lấy danh sách org của user để redirect đúng
+      const myOrgs = await api.getMyOrgs();
+      if (myOrgs.length > 0) {
+        const targetSlug = myOrgs[0].slug;
+        if (targetSlug !== orgSlug) {
+          // User thuộc org khác — redirect sang org của họ
+          setActiveTab('dashboard');
+          navigate(`/${targetSlug}/dashboard`);
+          return; // useEffect sẽ tự load data + role theo orgSlug mới
+        }
+      }
+
+      // Cùng org — chỉ refresh role và data
+      if (orgSlug) {
+        const [{ role }] = await Promise.all([
+          api.getMyOrgRole(orgSlug),
+          loadOrgData(orgSlug, true),
+        ]);
+        setOrgRole(role);
+      }
     } catch {
       setLoginError('Lỗi kết nối khi đăng nhập');
     }
@@ -143,12 +171,20 @@ const App: React.FC = () => {
   const handleLogout = async () => {
     await api.logout();
     setCurrentUser(null);
-    setCurrentOrg(null);
+    setOrgRole(null);
     setState(EMPTY_STATE);
     setActiveTab('dashboard');
+    // Reload data ở chế độ public (không seed)
+    if (orgSlug) await loadOrgData(orgSlug, false);
   };
 
-  const isAdmin = !!currentUser;
+  // Yêu cầu đăng nhập trước khi thực hiện hành động ghi
+  const requireAdmin = (action: () => void) => {
+    if (!currentUser) { setShowLoginModal(true); return false; }
+    if (!isAdmin) return false;
+    return true;
+  };
+
   const orgSlugForApi = currentOrg?.slug ?? null;
 
   const filteredNavItems = NAVIGATION_ITEMS.filter(item => {
@@ -159,7 +195,8 @@ const App: React.FC = () => {
   // ─── Member handlers ────────────────────────────────────────────────────────
 
   const handleAddMember = async (memberData: Omit<Member, 'id' | 'joinedAt'>) => {
-    if (!isAdmin || !orgSlugForApi) return;
+    if (!requireAdmin(() => {})) return;
+    if (!orgSlugForApi) return;
     setIsSaving(true);
     const newMember = await api.createMember(orgSlugForApi, memberData);
     if (newMember) {
@@ -170,7 +207,8 @@ const App: React.FC = () => {
   };
 
   const handleUpdateMember = async (updated: Member) => {
-    if (!isAdmin || !orgSlugForApi) return;
+    if (!requireAdmin(() => {})) return;
+    if (!orgSlugForApi) return;
     setIsSaving(true);
     const saved = await api.updateMember(orgSlugForApi, updated.id, updated);
     if (saved) {
@@ -184,7 +222,8 @@ const App: React.FC = () => {
   };
 
   const handleDeleteMember = async (id: string) => {
-    if (!isAdmin || !orgSlugForApi) return;
+    if (!requireAdmin(() => {})) return;
+    if (!orgSlugForApi) return;
     setIsSaving(true);
     const ok = await api.deleteMember(orgSlugForApi, id);
     if (ok) {
@@ -201,7 +240,8 @@ const App: React.FC = () => {
   };
 
   const handleAddTransaction = async (txData: Omit<Transaction, 'id'>) => {
-    if (!isAdmin || !orgSlugForApi) return;
+    if (!requireAdmin(() => {})) return;
+    if (!orgSlugForApi) return;
     setIsSaving(true);
     const categoryId = lookupCategoryId(txData.category, txData.type);
     const saved = await api.createTransaction(orgSlugForApi, txData, categoryId);
@@ -213,7 +253,8 @@ const App: React.FC = () => {
   };
 
   const handleUpdateTransaction = async (updated: Transaction) => {
-    if (!isAdmin || !orgSlugForApi) return;
+    if (!requireAdmin(() => {})) return;
+    if (!orgSlugForApi) return;
     setIsSaving(true);
     const categoryId = lookupCategoryId(updated.category, updated.type);
     const saved = await api.updateTransaction(orgSlugForApi, updated.id, updated, categoryId);
@@ -228,7 +269,8 @@ const App: React.FC = () => {
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    if (!isAdmin || !orgSlugForApi) return;
+    if (!requireAdmin(() => {})) return;
+    if (!orgSlugForApi) return;
     setIsSaving(true);
     const ok = await api.deleteTransaction(orgSlugForApi, id);
     if (ok) {
@@ -260,24 +302,6 @@ const App: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-800">Tổ chức không tồn tại</h2>
           <p className="text-gray-500">Đường dẫn <strong>/{orgSlug}</strong> không hợp lệ.</p>
-        </div>
-      );
-    }
-
-    if (!currentUser) {
-      return (
-        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <div className="bg-blue-50 p-6 rounded-3xl text-blue-600 mb-2">
-            <ShieldAlert size={48} />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800">Vui lòng đăng nhập</h2>
-          <p className="text-gray-500">Đăng nhập để xem và quản lý dữ liệu tổ chức.</p>
-          <button
-            onClick={() => setShowLoginModal(true)}
-            className="mt-4 flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all"
-          >
-            <LogIn size={18} /> Đăng nhập
-          </button>
         </div>
       );
     }
@@ -362,11 +386,13 @@ const App: React.FC = () => {
           </nav>
 
           <div className="pt-6 border-t border-gray-100 space-y-2">
-            {isAdmin ? (
+            {currentUser ? (
               <>
                 <div className="px-4 py-2 flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Admin Active</span>
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    {isAdmin ? 'Admin Active' : 'Đang xem'}
+                  </span>
+                  <div className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-gray-300'}`}></div>
                 </div>
                 {isSaving && (
                   <div className="flex items-center gap-2 px-4 py-2 text-xs text-gray-400">
@@ -434,10 +460,10 @@ const App: React.FC = () => {
                 <p className="text-sm font-semibold text-gray-900">
                   {currentUser ? (currentUser.display_name ?? currentUser.user_name) : 'Khách'}
                 </p>
-                <p className="text-xs text-gray-500">{isAdmin ? 'Quản trị viên' : 'Người xem'}</p>
+                <p className="text-xs text-gray-500">{isAdmin ? 'Quản trị viên' : currentUser ? 'Thành viên' : 'Người xem'}</p>
               </div>
               <div className={`h-10 w-10 rounded-full ${isAdmin ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'} flex items-center justify-center font-bold border-2 border-white shadow-sm`}>
-                {isAdmin ? 'AD' : 'G'}
+                {isAdmin ? 'AD' : currentUser ? currentUser.display_name?.[0]?.toUpperCase() ?? 'U' : 'G'}
               </div>
             </div>
           </div>

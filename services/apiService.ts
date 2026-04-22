@@ -72,6 +72,13 @@ export const getOrgBySlug = async (slug: string): Promise<Organization | null> =
   return json<Organization>(res);
 };
 
+export const getMyOrgRole = async (orgSlug: string): Promise<{ role: string | null }> => {
+  const res = await apiFetch(`/organizations/${orgSlug}/my-role`);
+  const data = (await json<{ role: string | null }>(res)) ?? { role: null };
+  console.log('[getMyOrgRole]', orgSlug, res.status, data);
+  return data;
+};
+
 export const createOrg = async (name: string, slug: string, description?: string): Promise<Organization | null> => {
   const res = await apiFetch('/organizations', {
     method: 'POST',
