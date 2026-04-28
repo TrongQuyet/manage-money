@@ -1,128 +1,74 @@
-# manage-money
+"" 
+# CLAUDE.md
 
-React frontend cho ứng dụng quản lý quỹ nhóm. Hỗ trợ nhiều tổ chức, tích hợp AI (Google Gemini).
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-## Lệnh thường dùng
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-```bash
-npm install
-npm run dev        # Dev server, port 3000
-npm run build      # Build production → dist/
-npm run preview    # Xem trước bản build
+## 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-## Tech stack
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-- **Framework**: React 19 + TypeScript
-- **Build**: Vite 6
-- **Routing**: React Router DOM v7
-- **Charts**: Recharts
-- **Icons**: Lucide React
-- **AI**: Google Gemini SDK (`@google/genai`)
-- **Styling**: Tailwind CSS
+---
 
-## Cấu trúc thư mục
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
-```
-├── components/
-│   ├── Dashboard.tsx             # Tổng quan: biểu đồ, giao dịch gần đây
-│   ├── TransactionManagement.tsx # CRUD giao dịch + tìm kiếm/lọc
-│   ├── MemberManagement.tsx      # Danh sách thành viên, vai trò, thông tin
-│   ├── Reports.tsx               # Báo cáo tài chính
-│   ├── AIInsights.tsx            # Phân tích AI bằng Gemini
-│   ├── Settings.tsx              # Quản lý danh mục
-│   └── CreateOrg.tsx             # Form tạo tổ chức mới
-├── services/
-│   ├── apiService.ts             # HTTP client (fetch + auto token refresh)
-│   └── geminiService.ts          # Tích hợp Google Gemini AI
-├── App.tsx                       # Shell chính: auth, routing, state
-├── index.tsx                     # Entry point với BrowserRouter
-├── types.ts                      # TypeScript interfaces
-└── constants.tsx                 # Điều hướng, danh mục fallback, API URL
-```
+## 5. Project Reference
 
-## Environment variables
+**Read `.claude/instructions.md` when needed** — tech stack, file structure, design system, API endpoints, dev commands.
 
-Tạo file `.env` ở root:
+Read when: the task involves an unfamiliar file/module, you need design tokens, or you need dev/docker commands.
 
-```env
-VITE_API_URL=http://localhost:3334/api
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-Trong Docker (Nginx proxy), `VITE_API_URL` nên để là `/api`.
-
-## Routing
-
-| Route | Màn hình |
-|-------|----------|
-| `/` | Welcome / chọn tổ chức |
-| `/create-org` | Tạo tổ chức mới |
-| `/:orgSlug/dashboard` | Dashboard |
-| `/:orgSlug/transactions` | Quản lý giao dịch |
-| `/:orgSlug/members` | Quản lý thành viên |
-| `/:orgSlug/reports` | Báo cáo |
-| `/:orgSlug/ai` | AI Insights |
-| `/:orgSlug/settings` | Cài đặt danh mục |
-
-## Quản lý state
-
-State tập trung trong `App.tsx` — không dùng Redux hay Context API:
-
-```
-AppState {
-  members, transactions, categories  # Dữ liệu từ API
-  balance                            # Tổng thu/chi/tồn
-  isLoading, isSaving, lastSaved     # Trạng thái UI
-}
-```
-
-Dữ liệu truyền xuống component con qua props; mutations qua callback (`onAddMember`, `onUpdateTransaction`, ...).
-
-## API client (apiService.ts)
-
-Tất cả request đều dùng `credentials: 'include'` để gửi cookie JWT.
-
-Khi nhận 401 → tự động gọi `/auth/refresh` rồi retry request gốc.
-
-Ví dụ pattern:
-```typescript
-// Tất cả hàm đều nhận orgSlug làm tham số đầu tiên
-api.getMembers(orgSlug)
-api.createTransaction(orgSlug, data)
-api.updateMember(orgSlug, memberId, data)
-```
-
-## Luồng xác thực
-
-1. `App.tsx` gọi `api.getMe()` khi load — nếu thành công thì đã đăng nhập
-2. Modal đăng nhập hiển thị nếu chưa auth
-3. Sau đăng nhập → gọi `api.getMyOrganizations()` lấy danh sách org
-4. Token lưu trong httpOnly cookie (không truy cập được từ JS)
-5. Tự động refresh token khi hết hạn (trong `apiService.ts`)
-
-## Quyền truy cập
-
-- **OWNER / ADMIN**: thấy nút thêm/sửa/xóa
-- **MEMBER**: chỉ xem (read-only badge hiển thị trên giao diện)
-
-Role lấy từ `api.getMe()` + `orgRole` trong response; component kiểm tra `isAdmin` prop.
-
-## Thêm tổ chức / trang mới
-
-1. Thêm route trong `App.tsx`
-2. Tạo component trong `components/`
-3. Thêm mục vào `NAV_ITEMS` trong `constants.tsx`
-4. Thêm hàm API tương ứng trong `services/apiService.ts`
-
-## Docker
-
-```bash
-# Dev (hot-reload, port 3000)
-docker compose -f docker-compose.dev.yml up --build
-
-# Production (Nginx, port 3333)
-docker compose up --build -d
-```
-
-Production dùng Nginx để serve static files và proxy `/api` → backend.
+**Skip it** when the task has enough context from the current code or the user's message.
