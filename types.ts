@@ -58,3 +58,5 @@ export interface AppState {
   currentBalance: number;
   orgId: string | null;
 }
+
+export type OrgSettings = Record<string, string>;

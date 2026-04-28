@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Member, Transaction, AppState, User, Organization, Category } from './types';
+import { Member, Transaction, AppState, User, Organization, Category, OrgSettings } from './types';
 import { NAVIGATION_ITEMS, CATEGORIES } from './constants';
 import Dashboard from './components/Dashboard';
 import MemberManagement from './components/MemberManagement';
@@ -46,6 +46,7 @@ const App: React.FC = () => {
   const [orgNotFound, setOrgNotFound] = useState(false);
 
   const [state, setState] = useState<AppState>(EMPTY_STATE);
+  const [orgSettings, setOrgSettings] = useState<OrgSettings>({});
 
   // isAdmin dựa trên role thực tế trong org, không phải chỉ "đã đăng nhập"
   const isAdmin = orgRole != null && (orgRole.toUpperCase() === 'OWNER' || orgRole.toUpperCase() === 'ADMIN');
@@ -99,7 +100,10 @@ const App: React.FC = () => {
     setCurrentOrg(org);
 
     // Load data + nếu đã đăng nhập thì lấy role và memberId song song
-    const tasks: Promise<unknown>[] = [loadOrgData(org.slug, !!user)];
+    const tasks: Promise<unknown>[] = [
+      loadOrgData(org.slug, !!user),
+      api.getOrgSettings(slug).then(setOrgSettings),
+    ];
     if (user) {
       tasks.push(
         api.getMyOrgRole(slug).then(({ role }) => setOrgRole(role)),
@@ -299,6 +303,10 @@ const App: React.FC = () => {
     setIsSaving(false);
   };
 
+  const handleSettingChange = (key: string, value: string) => {
+    setOrgSettings(prev => ({ ...prev, [key]: value }));
+  };
+
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   const renderContent = () => {
@@ -335,7 +343,7 @@ const App: React.FC = () => {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard state={state} />;
+        return <Dashboard state={state} dashboardImage={orgSettings.dashboard_image} />;
       case 'members':
         return (
           <MemberManagement
@@ -367,8 +375,10 @@ const App: React.FC = () => {
             binId={currentOrg?.slug ?? ''}
             setBinId={() => {}}
             state={state}
+            orgSettings={orgSettings}
+            onSettingChange={handleSettingChange}
           />
-        ) : <Dashboard state={state} />;
+        ) : <Dashboard state={state} dashboardImage={orgSettings.dashboard_image} />;
       default:
         return null;
     }

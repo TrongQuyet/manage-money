@@ -6,13 +6,14 @@ import {
 } from 'recharts';
 import { Transaction, AppState } from '../types';
 import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard, Heart } from 'lucide-react';
-import logo from "../Assets/a9pro.jpg";
+import defaultLogo from "../Assets/a9pro.jpg";
 
 interface Props {
   state: AppState;
+  dashboardImage?: string;
 }
 
-const Dashboard: React.FC<Props> = ({ state }) => {
+const Dashboard: React.FC<Props> = ({ state, dashboardImage }) => {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   const totalIncome = state.transactions
@@ -38,8 +39,8 @@ const Dashboard: React.FC<Props> = ({ state }) => {
       {/* Group Banner Section */}
       <div className="relative h-56 md:h-72 w-full rounded-3xl overflow-hidden shadow-2xl shadow-slate-200/60 group border-2 border-white/50 animate-fade-in">
         <img
-          src={logo}
-          alt="A9 Group"
+          src={dashboardImage || defaultLogo}
+          alt="Dashboard banner"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent"></div>

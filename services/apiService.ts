@@ -1,6 +1,6 @@
 
 import { API_BASE_URL } from '../constants';
-import { Member, Transaction, Category, Organization, User } from '../types';
+import { Member, Transaction, Category, Organization, User, OrgSettings } from '../types';
 
 let isRefreshing = false;
 
@@ -239,4 +239,18 @@ export const updateCategory = async (orgSlug: string, id: string, data: Partial<
 export const deleteCategory = async (orgSlug: string, id: string): Promise<boolean> => {
   const res = await apiFetch(`/${orgSlug}/categories/${id}`, { method: 'DELETE' });
   return res.status === 204;
+};
+
+// ─── Org Settings ─────────────────────────────────────────────────────────────
+
+export const getOrgSettings = async (orgSlug: string): Promise<OrgSettings> => {
+  const res = await apiFetch(`/${orgSlug}/settings`);
+  return (await json<OrgSettings>(res)) ?? {};
+};
+
+export const updateOrgSetting = async (orgSlug: string, key: string, value: string): Promise<void> => {
+  await apiFetch(`/${orgSlug}/settings/${key}`, {
+    method: 'PUT',
+    body: JSON.stringify({ value }),
+  });
 };
