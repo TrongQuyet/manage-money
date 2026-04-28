@@ -32,8 +32,12 @@ const Settings: React.FC<Props> = ({ binId: orgId, state, orgSettings, onSetting
   const handleSaveImage = async () => {
     if (!orgId || !imagePreview) return;
     setIsSavingImage(true);
-    await api.updateOrgSetting(orgId, 'dashboard_image', imagePreview);
-    onSettingChange('dashboard_image', imagePreview);
+    const ok = await api.updateOrgSetting(orgId, 'dashboard_image', imagePreview);
+    if (ok) {
+      onSettingChange('dashboard_image', imagePreview);
+    } else {
+      alert('Lưu ảnh thất bại. Ảnh có thể quá lớn hoặc lỗi kết nối.');
+    }
     setIsSavingImage(false);
   };
 

@@ -248,9 +248,10 @@ export const getOrgSettings = async (orgSlug: string): Promise<OrgSettings> => {
   return (await json<OrgSettings>(res)) ?? {};
 };
 
-export const updateOrgSetting = async (orgSlug: string, key: string, value: string): Promise<void> => {
-  await apiFetch(`/${orgSlug}/settings/${key}`, {
+export const updateOrgSetting = async (orgSlug: string, key: string, value: string): Promise<boolean> => {
+  const res = await apiFetch(`/${orgSlug}/settings/${key}`, {
     method: 'PUT',
     body: JSON.stringify({ value }),
   });
+  return res.ok;
 };
