@@ -115,6 +115,22 @@ export const deleteMember = async (orgSlug: string, id: string): Promise<boolean
   return res.status === 204;
 };
 
+export const getMyMember = async (orgSlug: string): Promise<Member | null> => {
+  const res = await apiFetch(`/${orgSlug}/members/self`);
+  return json<Member>(res);
+};
+
+export const updateOwnMember = async (
+  orgSlug: string,
+  data: Pick<Member, 'name' | 'email' | 'phone' | 'address'>,
+): Promise<Member | null> => {
+  const res = await apiFetch(`/${orgSlug}/members/self`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return json<Member>(res);
+};
+
 // ─── Transactions ────────────────────────────────────────────────────────────
 
 interface ApiTransaction extends Omit<Transaction, 'category'> {

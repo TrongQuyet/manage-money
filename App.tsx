@@ -6,7 +6,6 @@ import { NAVIGATION_ITEMS, CATEGORIES } from './constants';
 import Dashboard from './components/Dashboard';
 import MemberManagement from './components/MemberManagement';
 import TransactionManagement from './components/TransactionManagement';
-import AIInsights from './components/AIInsights';
 import Settings from './components/Settings';
 import Reports from './components/Reports';
 import * as api from './services/apiService';
@@ -39,6 +38,8 @@ const App: React.FC = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
+
+  const [myMemberId, setMyMemberId] = useState<string | null>(null);
 
   // Org state
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
@@ -97,11 +98,12 @@ const App: React.FC = () => {
     }
     setCurrentOrg(org);
 
-    // Load data + nếu đã đăng nhập thì lấy role song song
+    // Load data + nếu đã đăng nhập thì lấy role và memberId song song
     const tasks: Promise<unknown>[] = [loadOrgData(org.slug, !!user)];
     if (user) {
       tasks.push(
-        api.getMyOrgRole(slug).then(({ role }) => setOrgRole(role))
+        api.getMyOrgRole(slug).then(({ role }) => setOrgRole(role)),
+        api.getMyMember(slug).then((m) => setMyMemberId(m?.id ?? null)),
       );
     }
     await Promise.all(tasks);
@@ -155,13 +157,15 @@ const App: React.FC = () => {
         }
       }
 
-      // Cùng org — chỉ refresh role và data
+      // Cùng org — chỉ refresh role, memberId và data
       if (orgSlug) {
-        const [{ role }] = await Promise.all([
+        const [{ role }, , myMember] = await Promise.all([
           api.getMyOrgRole(orgSlug),
           loadOrgData(orgSlug, true),
+          api.getMyMember(orgSlug),
         ]);
         setOrgRole(role);
+        setMyMemberId(myMember?.id ?? null);
       }
     } catch {
       setLoginError('Lỗi kết nối khi đăng nhập');
@@ -172,6 +176,7 @@ const App: React.FC = () => {
     await api.logout();
     setCurrentUser(null);
     setOrgRole(null);
+    setMyMemberId(null);
     setState(EMPTY_STATE);
     setActiveTab('dashboard');
     // Reload data ở chế độ public (không seed)
@@ -215,6 +220,20 @@ const App: React.FC = () => {
       setState(prev => ({
         ...prev,
         members: prev.members.map(m => m.id === saved.id ? saved : m),
+      }));
+      setLastSaved(new Date());
+    }
+    setIsSaving(false);
+  };
+
+  const handleUpdateOwnMember = async (data: Pick<Member, 'id' | 'name' | 'email' | 'phone' | 'address'>) => {
+    if (!currentUser || !orgSlugForApi) return;
+    setIsSaving(true);
+    const saved = await api.updateOwnMember(orgSlugForApi, data);
+    if (saved) {
+      setState(prev => ({
+        ...prev,
+        members: prev.members.map(m => m.id === saved.id ? { ...m, ...saved } : m),
       }));
       setLastSaved(new Date());
     }
@@ -325,6 +344,8 @@ const App: React.FC = () => {
             onUpdateMember={handleUpdateMember}
             onDeleteMember={handleDeleteMember}
             isAdmin={isAdmin}
+            myMemberId={myMemberId}
+            onUpdateOwnMember={handleUpdateOwnMember}
           />
         );
       case 'transactions':
@@ -340,8 +361,6 @@ const App: React.FC = () => {
         );
       case 'reports':
         return <Reports state={state} />;
-      case 'ai-insights':
-        return <AIInsights state={state} />;
       case 'settings':
         return isAdmin ? (
           <Settings

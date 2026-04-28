@@ -12,9 +12,11 @@ interface Props {
   onUpdateMember: (member: Member) => void;
   onDeleteMember: (id: string) => void;
   isAdmin: boolean;
+  myMemberId?: string | null;
+  onUpdateOwnMember?: (data: Pick<Member, 'id' | 'name' | 'email' | 'phone' | 'address'>) => void;
 }
 
-const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMember, onDeleteMember, isAdmin }) => {
+const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMember, onDeleteMember, isAdmin, myMemberId, onUpdateOwnMember }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -40,8 +42,13 @@ const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMembe
 
   const handleUpdateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAdmin || !editingMember) return;
-    onUpdateMember(editingMember);
+    if (!editingMember) return;
+    const isSelf = editingMember.id === myMemberId;
+    if (isSelf && onUpdateOwnMember) {
+      onUpdateOwnMember({ id: editingMember.id, name: editingMember.name, email: editingMember.email, phone: editingMember.phone, address: editingMember.address });
+    } else if (isAdmin) {
+      onUpdateMember(editingMember);
+    }
     setEditingMember(null);
   };
 
@@ -156,11 +163,11 @@ const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMembe
                   <td className="px-6 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end space-x-1">
                       <button onClick={() => setSelectedMember(member)} className="p-2 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Xem chi tiết"><Eye size={16} /></button>
+                      {(isAdmin || member.id === myMemberId) && (
+                        <button onClick={() => setEditingMember(member)} className="p-2 text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Sửa"><Edit2 size={16} /></button>
+                      )}
                       {isAdmin && (
-                        <>
-                          <button onClick={() => setEditingMember(member)} className="p-2 text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Sửa"><Edit2 size={16} /></button>
-                          <button onClick={() => setDeletingMemberId(member.id)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Xóa"><Trash2 size={16} /></button>
-                        </>
+                        <button onClick={() => setDeletingMemberId(member.id)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Xóa"><Trash2 size={16} /></button>
                       )}
                     </div>
                   </td>
@@ -307,12 +314,14 @@ const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMembe
                 <label htmlFor="edit-address" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Địa chỉ</label>
                 <input id="edit-address" type="text" className={inputClsBlue} value={editingMember.address} onChange={(e) => setEditingMember({...editingMember, address: e.target.value})}/>
               </div>
-              <div>
-                <label htmlFor="edit-role" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Vai trò</label>
-                <select id="edit-role" className={inputClsBlue} value={editingMember.role} onChange={(e) => setEditingMember({...editingMember, role: e.target.value as MemberRole})}>
-                  {Object.values(MemberRole).map(role => <option key={role} value={role}>{role}</option>)}
-                </select>
-              </div>
+              {isAdmin && (
+                <div>
+                  <label htmlFor="edit-role" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Vai trò</label>
+                  <select id="edit-role" className={inputClsBlue} value={editingMember.role} onChange={(e) => setEditingMember({...editingMember, role: e.target.value as MemberRole})}>
+                    {Object.values(MemberRole).map(role => <option key={role} value={role}>{role}</option>)}
+                  </select>
+                </div>
+              )}
               <div className="md:col-span-2 flex space-x-3 pt-1">
                 <button type="button" onClick={() => setEditingMember(null)} className="flex-1 py-3 text-gray-500 font-semibold hover:bg-slate-50 rounded-xl transition-colors border border-gray-200 text-sm">Hủy</button>
                 <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200 text-sm active:scale-95">Lưu thay đổi</button>
