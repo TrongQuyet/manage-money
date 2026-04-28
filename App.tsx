@@ -285,23 +285,31 @@ const App: React.FC = () => {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <Loader2 size={48} className="animate-spin text-blue-600" />
-          <p className="text-gray-500 font-medium italic">
-            Đang tải dữ liệu {currentOrg?.name ?? ''}...
-          </p>
+        <div className="flex flex-col items-center justify-center py-32 space-y-6 animate-fade-in">
+          <div className="relative">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 flex items-center justify-center">
+              <Loader2 size={36} className="animate-spin text-emerald-500" />
+            </div>
+            <div className="absolute -inset-1 rounded-2xl border-2 border-emerald-200/50 animate-ping" />
+          </div>
+          <div className="text-center">
+            <p className="text-gray-700 font-semibold">Đang tải dữ liệu...</p>
+            <p className="text-gray-400 text-sm mt-1">{currentOrg?.name ?? ''}</p>
+          </div>
         </div>
       );
     }
 
     if (orgNotFound) {
       return (
-        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <div className="bg-red-50 p-6 rounded-3xl text-red-500 mb-2">
-            <ShieldAlert size={48} />
+        <div className="flex flex-col items-center justify-center py-32 space-y-5 animate-fade-in">
+          <div className="w-24 h-24 bg-red-50 rounded-3xl flex items-center justify-center text-red-400 border border-red-100">
+            <ShieldAlert size={44} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Tổ chức không tồn tại</h2>
-          <p className="text-gray-500">Đường dẫn <strong>/{orgSlug}</strong> không hợp lệ.</p>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-800">Tổ chức không tồn tại</h2>
+            <p className="text-gray-400 mt-2">Đường dẫn <strong className="text-gray-600">/{orgSlug}</strong> không hợp lệ.</p>
+          </div>
         </div>
       );
     }
@@ -350,74 +358,94 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-inter">
       {/* Mobile Top Bar */}
-      <div className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center space-x-2">
-          <div className="bg-emerald-600 p-2 rounded-lg text-white"><Wallet size={20} /></div>
-          <span className="font-bold text-lg text-gray-900 tracking-tight">
+      <div className="md:hidden bg-slate-900 border-b border-white/5 p-4 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center space-x-2.5">
+          <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-2 rounded-xl text-white shadow-lg shadow-emerald-500/30">
+            <Wallet size={20} />
+          </div>
+          <span className="font-bold text-lg text-white tracking-tight">
             {currentOrg?.name ?? 'Quản lý quỹ'}
           </span>
         </div>
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-400 hover:bg-white/10 rounded-xl transition-colors">
           {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:shadow-none'}`}>
-        <div className="h-full flex flex-col p-6">
-          <div className="hidden md:flex items-center space-x-3 mb-8">
-            <div className="bg-emerald-600 p-2.5 rounded-xl text-white shadow-lg shadow-emerald-200"><Wallet size={24} /></div>
-            <span className="font-extrabold text-xl tracking-tight text-gray-900">
-              {currentOrg?.name ?? 'Quản lý quỹ'}
-            </span>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900 to-slate-800 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0 shadow-2xl shadow-black/40' : '-translate-x-full'}`}>
+        <div className="h-full flex flex-col p-5">
+          {/* Logo */}
+          <div className="hidden md:flex items-center space-x-3 mb-8 px-1">
+            <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-2.5 rounded-xl text-white shadow-lg shadow-emerald-500/30 shrink-0">
+              <Wallet size={22} />
+            </div>
+            <div className="min-w-0">
+              <span className="font-extrabold text-base tracking-tight text-white block leading-tight truncate">
+                {currentOrg?.name ?? 'Quản lý quỹ'}
+              </span>
+              <span className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Fund Manager</span>
+            </div>
           </div>
 
-          <nav className="flex-1 space-y-2">
-            {filteredNavItems.map((item) => (
+          {/* Nav */}
+          <nav className="flex-1 space-y-1">
+            {filteredNavItems.map((item, idx) => (
               <button
                 key={item.id}
                 onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === item.id ? 'bg-emerald-50 text-emerald-600 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative animate-slide-in-left stagger-${Math.min(idx + 1, 6)} ${
+                  activeTab === item.id
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-400 font-semibold sidebar-item-active'
+                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                }`}
               >
-                {item.icon}
-                <span>{item.label}</span>
+                <span className={`transition-colors ${activeTab === item.id ? 'text-emerald-400' : 'text-slate-500 group-hover:text-white'}`}>
+                  {item.icon}
+                </span>
+                <span className="text-sm">{item.label}</span>
               </button>
             ))}
           </nav>
 
-          <div className="pt-6 border-t border-gray-100 space-y-2">
+          {/* Bottom user section */}
+          <div className="pt-4 border-t border-white/5 space-y-1">
             {currentUser ? (
               <>
-                <div className="px-4 py-2 flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    {isAdmin ? 'Admin Active' : 'Đang xem'}
-                  </span>
-                  <div className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-gray-300'}`}></div>
+                <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 mb-1">
+                  <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-sm text-white ${isAdmin ? 'bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md shadow-emerald-500/30' : 'bg-slate-600'}`}>
+                    {isAdmin ? 'AD' : currentUser.display_name?.[0]?.toUpperCase() ?? 'U'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate leading-tight">{currentUser.display_name ?? currentUser.user_name}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{isAdmin ? 'Quản trị viên' : 'Thành viên'}</p>
+                  </div>
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${isAdmin ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-slate-600'}`} />
                 </div>
                 {isSaving && (
-                  <div className="flex items-center gap-2 px-4 py-2 text-xs text-gray-400">
-                    <Loader2 size={12} className="animate-spin" /> Đang lưu...
+                  <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-slate-400">
+                    <Loader2 size={11} className="animate-spin" /> Đang lưu...
                   </div>
                 )}
                 {lastSaved && !isSaving && (
-                  <div className="flex items-center gap-2 px-4 py-2 text-xs text-emerald-600">
-                    <CheckCircle2 size={12} /> Đã lưu {lastSaved.toLocaleTimeString()}
+                  <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-emerald-500">
+                    <CheckCircle2 size={11} /> Đã lưu {lastSaved.toLocaleTimeString()}
                   </div>
                 )}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-colors text-sm"
+                  className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all text-sm group"
                 >
-                  <LogOut size={18} />
+                  <LogOut size={16} className="group-hover:translate-x-0.5 transition-transform" />
                   <span>Đăng xuất</span>
                 </button>
               </>
             ) : (
               <button
                 onClick={() => setShowLoginModal(true)}
-                className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors text-sm"
+                className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-400 hover:from-emerald-500/30 hover:to-teal-500/20 transition-all text-sm border border-emerald-500/20 group"
               >
-                <LogIn size={18} />
+                <LogIn size={16} className="group-hover:translate-x-0.5 transition-transform" />
                 <span>Đăng nhập Admin</span>
               </button>
             )}
@@ -427,98 +455,103 @@ const App: React.FC = () => {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="hidden md:flex bg-white border-b border-gray-100 h-20 items-center justify-between px-10 sticky top-0 z-30">
-          <div className="flex flex-col">
-            <h2 className="text-xl font-bold text-gray-800">
+        <header className="hidden md:flex glass border-b border-gray-100/80 h-18 items-center justify-between px-8 sticky top-0 z-30 shadow-sm" style={{ height: '72px' }}>
+          <div className="flex flex-col justify-center">
+            <h2 className="text-lg font-bold text-gray-900 leading-tight">
               {NAVIGATION_ITEMS.find(n => n.id === activeTab)?.label}
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-0.5">
               {isAdmin ? (
-                <span className="text-[10px] flex items-center gap-1 text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
-                  <ShieldCheck size={10} /> Chế độ Quản trị
+                <span className="text-[10px] flex items-center gap-1 text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                  <ShieldCheck size={9} /> Quản trị viên
                 </span>
               ) : (
                 <span className="text-[10px] flex items-center gap-1 text-gray-400 font-semibold bg-gray-100 px-2 py-0.5 rounded-full">
-                  <ShieldAlert size={10} /> Chế độ Xem (Read-only)
+                  <ShieldAlert size={9} /> Chỉ xem
                 </span>
               )}
-              {lastSaved && (
-                <span className="text-[10px] text-gray-400 italic">
-                  | Đã lưu {lastSaved.toLocaleTimeString()}
+              {lastSaved && !isSaving && (
+                <span className="text-[10px] text-gray-400 italic">· Lưu lúc {lastSaved.toLocaleTimeString()}</span>
+              )}
+              {isSaving && (
+                <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                  <Loader2 size={9} className="animate-spin" /> Đang lưu...
                 </span>
               )}
             </div>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <button className="relative p-2 text-gray-500 hover:bg-gray-50 rounded-full transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+          <div className="flex items-center space-x-3">
+            <button className="relative p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
+              <Bell size={18} />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
             </button>
-            <div className="flex items-center space-x-3 pl-6 border-l border-gray-100">
+            <div className="flex items-center space-x-3 pl-3 border-l border-gray-100">
               <div className="text-right">
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-gray-900 leading-tight">
                   {currentUser ? (currentUser.display_name ?? currentUser.user_name) : 'Khách'}
                 </p>
-                <p className="text-xs text-gray-500">{isAdmin ? 'Quản trị viên' : currentUser ? 'Thành viên' : 'Người xem'}</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">{isAdmin ? 'Quản trị viên' : currentUser ? 'Thành viên' : 'Người xem'}</p>
               </div>
-              <div className={`h-10 w-10 rounded-full ${isAdmin ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'} flex items-center justify-center font-bold border-2 border-white shadow-sm`}>
+              <div className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-sm ${isAdmin ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-md shadow-emerald-200' : 'bg-gray-100 text-gray-400'}`}>
                 {isAdmin ? 'AD' : currentUser ? currentUser.display_name?.[0]?.toUpperCase() ?? 'U' : 'G'}
               </div>
             </div>
           </div>
         </header>
 
-        <div className="p-4 md:p-10 overflow-y-auto max-w-7xl mx-auto w-full">
-          {renderContent()}
+        <div className="p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+          <div key={activeTab} className="animate-fade-in-up">
+            {renderContent()}
+          </div>
         </div>
       </main>
 
       {/* Login Modal */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-8 text-center border-b border-gray-100">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <ShieldCheck size={32} />
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-scale-in">
+            <div className="px-8 pt-10 pb-8 text-center bg-gradient-to-br from-slate-900 to-slate-800">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl shadow-emerald-500/30">
+                <ShieldCheck size={30} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Xác thực Admin</h3>
-              <p className="text-gray-500 mt-2">Vui lòng đăng nhập để thực hiện thay đổi</p>
+              <h3 className="text-2xl font-bold text-white">Xác thực Admin</h3>
+              <p className="text-slate-400 mt-2 text-sm">Vui lòng đăng nhập để thực hiện thay đổi</p>
             </div>
             <form onSubmit={handleLogin} className="p-8 space-y-4">
               {loginError && (
-                <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
-                  {loginError}
+                <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center gap-2">
+                  <ShieldAlert size={14} className="shrink-0" /> {loginError}
                 </div>
               )}
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Tên đăng nhập</label>
+                <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Tên đăng nhập</label>
                 <input
                   autoFocus
                   required
                   type="text"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
+                  className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:bg-white outline-none transition-all text-sm"
                   value={loginForm.username}
                   onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Mật khẩu</label>
+                <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Mật khẩu</label>
                 <input
                   required
                   type="password"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
+                  className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:bg-white outline-none transition-all text-sm"
                   value={loginForm.password}
                   onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                 />
               </div>
-              <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold hover:bg-blue-700 rounded-xl transition-all shadow-lg shadow-blue-200 mt-4">
+              <button type="submit" className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold hover:from-emerald-600 hover:to-teal-600 rounded-xl transition-all shadow-lg shadow-emerald-200 mt-2 active:scale-95">
                 Đăng nhập
               </button>
               <button
                 type="button"
                 onClick={() => { setShowLoginModal(false); setLoginError(''); }}
-                className="w-full py-2 text-gray-500 font-medium hover:text-gray-700 mt-2"
+                className="w-full py-2.5 text-gray-400 font-medium hover:text-gray-600 transition-colors text-sm"
               >
                 Hủy bỏ
               </button>
@@ -529,7 +562,7 @@ const App: React.FC = () => {
 
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}

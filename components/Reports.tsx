@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, 
-  PieChart as RePieChart, Pie, Legend, LineChart, Line
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
+  PieChart as RePieChart, Pie
 } from 'recharts';
-import { Transaction, AppState, Member } from '../types';
-import { CreditCard, TrendingUp, TrendingDown, Target, Download, Users, Briefcase } from 'lucide-react';
+import { AppState } from '../types';
+import { CreditCard, TrendingUp, TrendingDown, Target, Download } from 'lucide-react';
 
 interface Props {
   state: AppState;
@@ -71,81 +71,67 @@ const Reports: React.FC<Props> = ({ state }) => {
   const formatCurrency = (val: number) => `${val.toLocaleString('vi-VN')} đ`;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-2xl font-bold text-gray-900">Báo cáo tài chính chi tiết</h3>
-          <p className="text-gray-500">Phân tích chuyên sâu về dòng tiền và đóng góp hội nhóm</p>
+          <h3 className="text-xl font-bold text-gray-900">Báo cáo tài chính chi tiết</h3>
+          <p className="text-sm text-gray-400 mt-0.5">Phân tích chuyên sâu về dòng tiền và đóng góp hội nhóm</p>
         </div>
-        <button 
-          onClick={() => window.print()}
-          className="flex items-center justify-center space-x-2 bg-white border border-gray-200 px-5 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm group"
+        <button
+          onClick={() => globalThis.print()}
+          className="flex items-center justify-center space-x-2 bg-white border border-gray-200 px-5 py-2.5 rounded-xl text-gray-600 hover:bg-slate-50 hover:border-gray-300 transition-all shadow-sm group active:scale-95"
         >
-          <Download size={18} className="group-hover:translate-y-0.5 transition-transform" />
-          <span className="font-semibold whitespace-nowrap">Xuất file PDF</span>
+          <Download size={16} className="group-hover:translate-y-0.5 transition-transform" />
+          <span className="font-semibold whitespace-nowrap text-sm">Xuất PDF</span>
         </button>
       </div>
 
-      {/* High-level Summary Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <TrendingUp size={64} className="text-emerald-600" />
-          </div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Tổng thu quỹ</p>
-          <p className="text-2xl font-black text-emerald-600">{formatCurrency(totalIncome)}</p>
-          <div className="mt-3 flex items-center text-xs text-emerald-500 font-bold">
-            <TrendingUp size={14} className="mr-1" /> 100% dòng vào
-          </div>
+      {/* Summary Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl shadow-lg shadow-emerald-200/50 text-white relative overflow-hidden card-hover animate-fade-in-up stagger-1">
+          <div className="absolute -right-3 -top-3 opacity-10"><TrendingUp size={72} /></div>
+          <div className="bg-white/20 p-2 rounded-xl w-fit mb-3"><TrendingUp size={18} /></div>
+          <p className="text-[11px] font-bold text-white/70 uppercase tracking-widest mb-1">Tổng thu quỹ</p>
+          <p className="text-xl font-black leading-tight">{formatCurrency(totalIncome)}</p>
+          <p className="text-[10px] text-white/50 mt-2 font-medium">100% dòng tiền vào</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <TrendingDown size={64} className="text-red-600" />
-          </div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Tổng chi tiêu</p>
-          <p className="text-2xl font-black text-red-600">{formatCurrency(totalExpense)}</p>
-          <div className="mt-3 flex items-center text-xs text-red-500 font-bold">
-            <TrendingDown size={14} className="mr-1" /> Dòng ra quỹ
-          </div>
+        <div className="bg-gradient-to-br from-red-500 to-rose-600 p-5 rounded-2xl shadow-lg shadow-red-200/50 text-white relative overflow-hidden card-hover animate-fade-in-up stagger-2">
+          <div className="absolute -right-3 -top-3 opacity-10"><TrendingDown size={72} /></div>
+          <div className="bg-white/20 p-2 rounded-xl w-fit mb-3"><TrendingDown size={18} /></div>
+          <p className="text-[11px] font-bold text-white/70 uppercase tracking-widest mb-1">Tổng chi tiêu</p>
+          <p className="text-xl font-black leading-tight">{formatCurrency(totalExpense)}</p>
+          <p className="text-[10px] text-white/50 mt-2 font-medium">Dòng tiền ra quỹ</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <Target size={64} className="text-blue-600" />
-          </div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Tỷ lệ dư thừa</p>
-          <p className="text-2xl font-black text-blue-600">
-            {totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome * 100).toFixed(1) : 0}%
-          </p>
-          <div className="mt-3 flex items-center text-xs text-blue-500 font-bold">
-             <Briefcase size={14} className="mr-1" /> Sức khỏe tài chính
-          </div>
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-2xl shadow-lg shadow-blue-200/50 text-white relative overflow-hidden card-hover animate-fade-in-up stagger-3">
+          <div className="absolute -right-3 -top-3 opacity-10"><Target size={72} /></div>
+          <div className="bg-white/20 p-2 rounded-xl w-fit mb-3"><Target size={18} /></div>
+          <p className="text-[11px] font-bold text-white/70 uppercase tracking-widest mb-1">Tỷ lệ dư thừa</p>
+          <p className="text-xl font-black leading-tight">{totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome * 100).toFixed(1) : 0}%</p>
+          <p className="text-[10px] text-white/50 mt-2 font-medium">Sức khỏe tài chính</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <Users size={64} className="text-indigo-600" />
-          </div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Số dư ròng</p>
-          <p className="text-2xl font-black text-gray-900">{formatCurrency(currentBalance)}</p>
-          <div className="mt-3 flex items-center text-xs text-indigo-500 font-bold">
-            <CreditCard size={14} className="mr-1" /> Khả dụng hiện tại
-          </div>
+        <div className="bg-gradient-to-br from-violet-500 to-purple-600 p-5 rounded-2xl shadow-lg shadow-violet-200/50 text-white relative overflow-hidden card-hover animate-fade-in-up stagger-4">
+          <div className="absolute -right-3 -top-3 opacity-10"><CreditCard size={72} /></div>
+          <div className="bg-white/20 p-2 rounded-xl w-fit mb-3"><CreditCard size={18} /></div>
+          <p className="text-[11px] font-bold text-white/70 uppercase tracking-widest mb-1">Số dư ròng</p>
+          <p className="text-xl font-black leading-tight">{formatCurrency(currentBalance)}</p>
+          <p className="text-[10px] text-white/50 mt-2 font-medium">Khả dụng hiện tại</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Monthly Trend Chart */}
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h4 className="text-lg font-bold text-gray-800">Biểu đồ tăng trưởng quỹ</h4>
-            <div className="flex gap-4">
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h4 className="text-base font-bold text-gray-800">Biểu đồ tăng trưởng quỹ</h4>
+            <div className="flex gap-3">
               <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
-                <div className="w-3 h-3 rounded-full bg-emerald-500"></div> Thu
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div> Thu
               </div>
               <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div> Chi
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div> Chi
               </div>
             </div>
           </div>
@@ -184,8 +170,8 @@ const Reports: React.FC<Props> = ({ state }) => {
         </div>
 
         {/* Member Contribution Chart */}
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-          <h4 className="text-lg font-bold text-gray-800 mb-8">Đóng góp theo thành viên</h4>
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <h4 className="text-base font-bold text-gray-800 mb-6">Đóng góp theo thành viên</h4>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={memberStats} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
@@ -218,8 +204,8 @@ const Reports: React.FC<Props> = ({ state }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Category Breakdown (Pie) */}
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm lg:col-span-1">
-          <h4 className="text-lg font-bold text-gray-800 mb-8">Cơ cấu chi tiêu</h4>
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm lg:col-span-1">
+          <h4 className="text-base font-bold text-gray-800 mb-6">Cơ cấu chi tiêu</h4>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RePieChart>
@@ -233,7 +219,7 @@ const Reports: React.FC<Props> = ({ state }) => {
                   dataKey="value"
                 >
                   {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
@@ -259,36 +245,32 @@ const Reports: React.FC<Props> = ({ state }) => {
         </div>
 
         {/* Member Leaderboard / Table */}
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm lg:col-span-2 overflow-hidden">
-          <h4 className="text-lg font-bold text-gray-800 mb-8">Chi tiết hoạt động thành viên</h4>
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm lg:col-span-2 overflow-hidden">
+          <h4 className="text-base font-bold text-gray-800 mb-5">Chi tiết hoạt động thành viên</h4>
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[500px]">
               <thead>
-                <tr className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
-                  <th className="pb-4 px-2 whitespace-nowrap">Thành viên</th>
-                  <th className="pb-4 px-2 text-right text-emerald-600 whitespace-nowrap">Tổng Đóng</th>
-                  <th className="pb-4 px-2 text-right text-red-600 whitespace-nowrap">Tổng Chi</th>
-                  <th className="pb-4 px-2 text-right whitespace-nowrap">Thực đóng (Net)</th>
+                <tr className="bg-slate-50/80 rounded-xl">
+                  <th className="py-3 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap rounded-l-xl">Thành viên</th>
+                  <th className="py-3 px-3 text-[11px] font-bold text-emerald-500 uppercase tracking-widest text-right whitespace-nowrap">Tổng đóng</th>
+                  <th className="py-3 px-3 text-[11px] font-bold text-red-400 uppercase tracking-widest text-right whitespace-nowrap">Tổng chi</th>
+                  <th className="py-3 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap rounded-r-xl">Net</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {memberStats.sort((a, b) => b.income - a.income).map((stat) => (
-                  <tr key={stat.name} className="group hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-2 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
+                  <tr key={stat.name} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3.5 px-3 whitespace-nowrap">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-xs font-bold text-white shrink-0">
                           {stat.name.charAt(0)}
                         </div>
-                        <span className="text-sm font-semibold text-slate-700">{stat.name}</span>
+                        <span className="text-sm font-semibold text-gray-700">{stat.name}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-2 text-right text-sm font-bold text-emerald-600 whitespace-nowrap">
-                      {formatCurrency(stat.income)}
-                    </td>
-                    <td className="py-4 px-2 text-right text-sm font-semibold text-red-400 whitespace-nowrap">
-                      {formatCurrency(stat.expense)}
-                    </td>
-                    <td className={`py-4 px-2 text-right text-sm font-black whitespace-nowrap ${stat.total >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
+                    <td className="py-3.5 px-3 text-right text-sm font-bold text-emerald-600 whitespace-nowrap">{formatCurrency(stat.income)}</td>
+                    <td className="py-3.5 px-3 text-right text-sm font-semibold text-red-400 whitespace-nowrap">{formatCurrency(stat.expense)}</td>
+                    <td className={`py-3.5 px-3 text-right text-sm font-black whitespace-nowrap ${stat.total >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
                       {formatCurrency(stat.total)}
                     </td>
                   </tr>

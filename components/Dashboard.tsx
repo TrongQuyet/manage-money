@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, 
+import {
+  Tooltip, ResponsiveContainer, Cell,
   PieChart as RePieChart, Pie
 } from 'recharts';
 import { Transaction, AppState } from '../types';
-import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard, Users, Heart } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard, Heart } from 'lucide-react';
 import logo from "../Assets/a9pro.jpg";
 
 interface Props {
@@ -36,133 +36,144 @@ const Dashboard: React.FC<Props> = ({ state }) => {
     <>
     <div className="space-y-6">
       {/* Group Banner Section */}
-      <div className="relative h-64 md:h-80 w-full rounded-[32px] overflow-hidden shadow-2xl shadow-emerald-100/50 group border-4 border-white">
-        <img 
+      <div className="relative h-56 md:h-72 w-full rounded-3xl overflow-hidden shadow-2xl shadow-slate-200/60 group border-2 border-white/50 animate-fade-in">
+        <img
           src={logo}
-          alt="A9 Group" 
+          alt="A9 Group"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 p-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 p-7 w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 mb-2">
-              <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">Official Group</span>
-              <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Since 2021</span>
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-500/30">Official Group</span>
+              <span className="bg-white/15 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest border border-white/20">Since 2021</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter drop-shadow-lg">
-              Trùm A9
-            </h1>
-            <p className="text-emerald-300 font-bold text-sm md:text-base flex items-center gap-2">
-              <Heart size={16} className="fill-emerald-500 text-emerald-500" /> 
+            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter drop-shadow-lg">Trùm A9</h1>
+            <p className="text-emerald-300 font-semibold text-sm flex items-center gap-1.5">
+              <Heart size={14} className="fill-emerald-400 text-emerald-400" />
               Gắn kết anh em - Vững bền ngân quỹ
             </p>
           </div>
-          <div className="hidden md:flex items-center gap-4 bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/20">
-             <div className="text-right">
-                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">Thành viên</p>
-                <p className="text-xl font-black text-white">{state.members.length}</p>
-             </div>
-             <div className="w-px h-8 bg-white/20"></div>
-             <div className="text-right">
-                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">Hoạt động</p>
-                <p className="text-xl font-black text-white">{state.transactions.length}</p>
-             </div>
+          <div className="hidden md:flex items-center gap-5 bg-white/10 backdrop-blur-xl px-5 py-4 rounded-2xl border border-white/15">
+            <div className="text-center">
+              <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-0.5">Thành viên</p>
+              <p className="text-2xl font-black text-white">{state.members.length}</p>
+            </div>
+            <div className="w-px h-10 bg-white/15"></div>
+            <div className="text-center">
+              <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-0.5">Giao dịch</p>
+              <p className="text-2xl font-black text-white">{state.transactions.length}</p>
+            </div>
           </div>
         </div>
       </div>
+
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="bg-blue-50 p-3 rounded-xl">
-            <TrendingUp className="w-8 h-8 text-blue-600" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-2xl shadow-lg shadow-emerald-200/50 text-white relative overflow-hidden card-hover animate-fade-in-up stagger-1">
+          <div className="absolute -right-4 -top-4 opacity-10">
+            <TrendingUp size={88} />
           </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Số dư hiện tại</p>
-            <h3 className="text-2xl font-bold text-gray-900">{state.currentBalance.toLocaleString('vi-VN')} đ</h3>
+          <div className="bg-white/20 p-2.5 rounded-xl w-fit mb-3">
+            <TrendingUp className="w-5 h-5" />
           </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="bg-emerald-50 p-3 rounded-xl">
-            <ArrowUpCircle className="w-8 h-8 text-emerald-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Tổng thu</p>
-            <h3 className="text-2xl font-bold text-gray-900">{totalIncome.toLocaleString('vi-VN')} đ</h3>
-          </div>
+          <p className="text-sm font-medium text-white/80">Số dư hiện tại</p>
+          <h3 className="text-2xl font-black mt-1 tracking-tight">{state.currentBalance.toLocaleString('vi-VN')} đ</h3>
+          <p className="text-[10px] text-white/50 mt-2 uppercase tracking-widest font-bold">Cập nhật real-time</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-          <div className="bg-red-50 p-3 rounded-xl">
-            <ArrowDownCircle className="w-8 h-8 text-red-600" />
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-6 rounded-2xl shadow-lg shadow-blue-200/50 text-white relative overflow-hidden card-hover animate-fade-in-up stagger-2">
+          <div className="absolute -right-4 -top-4 opacity-10">
+            <ArrowUpCircle size={88} />
           </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Tổng chi</p>
-            <h3 className="text-2xl font-bold text-gray-900">{totalExpense.toLocaleString('vi-VN')} đ</h3>
+          <div className="bg-white/20 p-2.5 rounded-xl w-fit mb-3">
+            <ArrowUpCircle className="w-5 h-5" />
           </div>
+          <p className="text-sm font-medium text-white/80">Tổng thu</p>
+          <h3 className="text-2xl font-black mt-1 tracking-tight">{totalIncome.toLocaleString('vi-VN')} đ</h3>
+          <p className="text-[10px] text-white/50 mt-2 uppercase tracking-widest font-bold">Tổng tiền vào quỹ</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-red-500 to-rose-600 p-6 rounded-2xl shadow-lg shadow-red-200/50 text-white relative overflow-hidden card-hover animate-fade-in-up stagger-3">
+          <div className="absolute -right-4 -top-4 opacity-10">
+            <ArrowDownCircle size={88} />
+          </div>
+          <div className="bg-white/20 p-2.5 rounded-xl w-fit mb-3">
+            <ArrowDownCircle className="w-5 h-5" />
+          </div>
+          <p className="text-sm font-medium text-white/80">Tổng chi</p>
+          <h3 className="text-2xl font-black mt-1 tracking-tight">{totalExpense.toLocaleString('vi-VN')} đ</h3>
+          <p className="text-[10px] text-white/50 mt-2 uppercase tracking-widest font-bold">Tổng tiền ra quỹ</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Chart */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h4 className="text-lg font-semibold mb-6">Phân bổ Ngân quỹ</h4>
-          <div className="h-64">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100/80 animate-fade-in-up stagger-4">
+          <h4 className="text-base font-bold text-gray-800 mb-5">Phân bổ Ngân quỹ</h4>
+          <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <RePieChart>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
+                  innerRadius={58}
                   outerRadius={80}
-                  paddingAngle={5}
+                  paddingAngle={6}
                   dataKey="value"
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `${Number(value).toLocaleString('vi-VN')} đ`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+                  formatter={(value) => `${Number(value).toLocaleString('vi-VN')} đ`}
+                />
               </RePieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex justify-center space-x-8 mt-4">
+          <div className="flex justify-center space-x-8 mt-2">
             {pieData.map((item) => (
               <div key={item.name} className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                <span className="text-sm text-gray-600">{item.name}</span>
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></div>
+                <span className="text-sm text-gray-500 font-medium">{item.name}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Recent Activity with Detail View Capability */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h4 className="text-lg font-semibold mb-6">Giao dịch gần đây</h4>
-          <div className="space-y-4">
+        {/* Recent Transactions */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100/80 animate-fade-in-up stagger-5">
+          <h4 className="text-base font-bold text-gray-800 mb-5">Giao dịch gần đây</h4>
+          <div className="space-y-2">
             {recentTransactions.map((tx) => (
-              <div 
-                key={tx.id} 
+              <div
+                key={tx.id}
                 onClick={() => setSelectedTx(tx)}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-2xl transition-all cursor-pointer group border border-transparent hover:border-gray-100"
+                className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-2xl transition-all cursor-pointer group border border-transparent hover:border-slate-100"
               >
-                <div className="flex items-center space-x-4">
-                  <div className={`p-3 rounded-xl flex items-center justify-center ${tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                    {tx.type === 'INCOME' ? <ArrowUpCircle size={24} /> : <ArrowDownCircle size={24} />}
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2.5 rounded-xl flex items-center justify-center ${tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+                    {tx.type === 'INCOME' ? <ArrowUpCircle size={20} /> : <ArrowDownCircle size={20} />}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">{tx.description}</p>
-                    <p className="text-xs text-gray-400 font-medium">{new Date(tx.date).toLocaleDateString('vi-VN')}</p>
+                    <p className="text-sm font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors leading-tight">{tx.description}</p>
+                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">{new Date(tx.date).toLocaleDateString('vi-VN')}</p>
                   </div>
                 </div>
-                <p className={`text-base font-bold ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'}`}>
+                <p className={`text-sm font-black ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-red-500'}`}>
                   {tx.type === 'INCOME' ? '+' : '-'}{tx.amount.toLocaleString('vi-VN')} đ
                 </p>
               </div>
             ))}
             {recentTransactions.length === 0 && (
-              <p className="text-center text-gray-500 py-12 italic">Chưa có giao dịch nào.</p>
+              <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                <CreditCard size={32} className="mb-3 opacity-30" />
+                <p className="text-sm italic">Chưa có giao dịch nào.</p>
+              </div>
             )}
           </div>
         </div>

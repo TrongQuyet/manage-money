@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { Member, MemberRole } from '../types';
-import { 
-  PlusCircle, Trash2, Edit2, Search, UserPlus, ShieldAlert, 
-  AlertTriangle, Phone, MapPin, Mail, Calendar, StickyNote, User, Eye, X
+import {
+  Trash2, Edit2, Search, UserPlus, ShieldAlert,
+  AlertTriangle, Phone, MapPin, Mail, Calendar, StickyNote, Eye, X
 } from 'lucide-react';
 
 interface Props {
@@ -61,177 +61,169 @@ const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMembe
     );
   });
 
+  const inputCls = "w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm transition-all";
+  const inputClsBlue = "w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all";
+
+  const roleBadgeCls = (role: MemberRole) => {
+    if (role === MemberRole.ADMIN) return 'bg-purple-50 text-purple-600 border border-purple-200';
+    if (role === MemberRole.TREASURER) return 'bg-amber-50 text-amber-600 border border-amber-200';
+    return 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+  };
+  const roleModalBadgeCls = (role: MemberRole) => {
+    if (role === MemberRole.ADMIN) return 'bg-purple-500/20 text-purple-300 border border-purple-500/30';
+    if (role === MemberRole.TREASURER) return 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
+    return 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h3 className="text-xl font-bold text-gray-900">Danh sách thành viên Trùm A9</h3>
-        
-        <div className="flex flex-col sm:flex-row gap-3">
+    <div className="space-y-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Danh sách thành viên</h3>
+          <p className="text-sm text-gray-400 mt-0.5">{filteredMembers.length} thành viên</p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2.5">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Tìm tên, email, sđt..."
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full"
+              className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent w-full md:w-56 text-sm shadow-sm transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          {isAdmin && (
-            <button 
+          {isAdmin ? (
+            <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center justify-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
+              className="flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-2.5 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-200 font-bold active:scale-95"
             >
-              <UserPlus size={18} />
+              <UserPlus size={17} />
               <span className="whitespace-nowrap">Thêm thành viên</span>
             </button>
+          ) : (
+            <div className="flex items-center gap-2 text-amber-600 text-sm font-semibold bg-amber-50 px-4 py-2.5 rounded-xl border border-amber-100">
+              <ShieldAlert size={15} /> Chỉ xem
+            </div>
           )}
         </div>
       </div>
 
-      {!isAdmin && (
-        <div className="px-6 py-2 bg-amber-50 border-b border-amber-100 flex items-center gap-2 text-amber-700 text-xs font-medium">
-          <ShieldAlert size={14} />
-          Chế độ xem: Chỉ Admin mới có quyền quản lý thành viên.
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[860px]">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-gray-100">
+                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Thông tin</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Liên lạc</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Địa chỉ</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Vai trò</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredMembers.map((member) => (
+                <tr
+                  key={member.id}
+                  className="hover:bg-slate-50/60 transition-colors cursor-pointer group"
+                  onClick={() => setSelectedMember(member)}
+                >
+                  <td className="px-6 py-3.5 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                        {member.name ? member.name.charAt(0) : '?'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors leading-tight">{member.name}</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">{member.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-3.5 whitespace-nowrap">
+                    <span className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
+                      <Phone size={12} className="text-gray-300"/> {member.phone || <span className="text-gray-300 italic text-xs">Chưa có</span>}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3.5">
+                    <p className="text-sm text-gray-500 line-clamp-1 max-w-[200px]">{member.address || <span className="text-gray-300">—</span>}</p>
+                  </td>
+                  <td className="px-6 py-3.5 whitespace-nowrap">
+                    <span className={`inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider ${roleBadgeCls(member.role)}`}>
+                      {member.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-end space-x-1">
+                      <button onClick={() => setSelectedMember(member)} className="p-2 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Xem chi tiết"><Eye size={16} /></button>
+                      {isAdmin && (
+                        <>
+                          <button onClick={() => setEditingMember(member)} className="p-2 text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Sửa"><Edit2 size={16} /></button>
+                          <button onClick={() => setDeletingMemberId(member.id)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Xóa"><Trash2 size={16} /></button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredMembers.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-20 text-center text-gray-400 text-sm">Không tìm thấy thành viên nào.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-left min-w-[900px]">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Thông tin</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Liên lạc</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Địa chỉ</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Vai trò</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right whitespace-nowrap">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {filteredMembers.map((member) => (
-              <tr 
-                key={member.id} 
-                className="hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={() => setSelectedMember(member)}
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold shrink-0">
-                      {member.name ? member.name.charAt(0) : '?'}
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-semibold text-gray-900">{member.name}</p>
-                      <p className="text-xs text-gray-500">{member.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                   <div className="flex flex-col text-sm text-gray-600">
-                     <span className="flex items-center gap-1.5 font-medium"><Phone size={12} className="text-gray-400"/> {member.phone || 'Chưa có'}</span>
-                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <p className="text-sm text-gray-600 line-clamp-1 max-w-[200px]" title={member.address}>
-                    {member.address || '-'}
-                  </p>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                    member.role === MemberRole.ADMIN ? 'bg-purple-100 text-purple-700 border border-purple-200' :
-                    member.role === MemberRole.TREASURER ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                    'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                  }`}>
-                    {member.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex justify-end space-x-1">
-                    <button onClick={() => setSelectedMember(member)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Xem chi tiết"><Eye size={18} /></button>
-                    {isAdmin && (
-                      <>
-                        <button onClick={() => setEditingMember(member)} className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Sửa"><Edit2 size={18} /></button>
-                        <button onClick={() => setDeletingMemberId(member.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Xóa"><Trash2 size={18} /></button>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {filteredMembers.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">Không tìm thấy thành viên nào.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </div>
 
       {/* Member Detail Modal */}
       {selectedMember && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="relative p-8 bg-gradient-to-br from-emerald-600 to-teal-700 text-white">
-              <button 
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
+            <div className="relative px-8 pt-8 pb-7 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+              <button
                 onClick={() => setSelectedMember(null)}
-                className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
-              <div className="flex items-center gap-6">
-                <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl font-black border border-white/30">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-2xl font-black shadow-lg shadow-emerald-500/30">
                   {selectedMember.name.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold">{selectedMember.name}</h3>
-                  <p className="text-emerald-100 font-medium flex items-center gap-1.5 mt-1">
-                    <ShieldAlert size={14} /> {selectedMember.role}
-                  </p>
+                  <h3 className="text-xl font-bold">{selectedMember.name}</h3>
+                  <span className={`inline-block mt-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-bold uppercase tracking-wider ${roleModalBadgeCls(selectedMember.role)}`}>{selectedMember.role}</span>
                 </div>
               </div>
             </div>
-            
-            <div className="p-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <Mail size={12} /> Email
-                  </p>
-                  <p className="text-gray-900 font-semibold">{selectedMember.email}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <Phone size={12} /> Số điện thoại
-                  </p>
-                  <p className="text-gray-900 font-semibold">{selectedMember.phone || 'Chưa cập nhật'}</p>
-                </div>
-                <div className="space-y-1 md:col-span-2">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <MapPin size={12} /> Địa chỉ
-                  </p>
-                  <p className="text-gray-900 font-semibold">{selectedMember.address || 'Chưa cập nhật'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <Calendar size={12} /> Ngày gia nhập
-                  </p>
-                  <p className="text-gray-900 font-semibold">
-                    {new Date(selectedMember.joinedAt).toLocaleDateString('vi-VN')}
-                  </p>
+
+            <div className="p-7 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: <Mail size={14} />, label: 'Email', value: selectedMember.email },
+                  { icon: <Phone size={14} />, label: 'Điện thoại', value: selectedMember.phone || 'Chưa cập nhật' },
+                  { icon: <Calendar size={14} />, label: 'Ngày gia nhập', value: new Date(selectedMember.joinedAt).toLocaleDateString('vi-VN') },
+                ].map(item => (
+                  <div key={item.label} className="p-3 bg-slate-50 rounded-xl">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mb-1">{item.icon}{item.label}</p>
+                    <p className="text-sm font-semibold text-gray-700 truncate">{item.value}</p>
+                  </div>
+                ))}
+                <div className="p-3 bg-slate-50 rounded-xl col-span-2">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mb-1"><MapPin size={14} />Địa chỉ</p>
+                  <p className="text-sm font-semibold text-gray-700">{selectedMember.address || 'Chưa cập nhật'}</p>
                 </div>
               </div>
-
               {selectedMember.note && (
-                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                    <StickyNote size={12} /> Ghi chú
-                  </p>
-                  <p className="text-sm text-gray-600 italic">"{selectedMember.note}"</p>
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                  <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1.5 mb-1"><StickyNote size={14} />Ghi chú</p>
+                  <p className="text-sm text-amber-800 italic">"{selectedMember.note}"</p>
                 </div>
               )}
-
-              <button 
+              <button
                 onClick={() => setSelectedMember(null)}
-                className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+                className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-200 active:scale-95"
               >
                 Đóng
               </button>
@@ -242,41 +234,45 @@ const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMembe
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-gray-100 bg-emerald-50">
-              <h3 className="text-xl font-bold text-emerald-900">Thêm thành viên Trùm A9</h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
+            <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white">Thêm thành viên</h3>
+                <p className="text-slate-400 text-xs mt-0.5">Điền đầy đủ thông tin thành viên mới</p>
+              </div>
+              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-white/10 rounded-xl text-slate-400"><X size={18}/></button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="p-7 grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Họ tên *</label>
-                <input required type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" value={newMember.name} onChange={(e) => setNewMember({...newMember, name: e.target.value})}/>
+                <label htmlFor="add-name" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Họ tên *</label>
+                <input id="add-name" required type="text" className={inputCls} value={newMember.name} onChange={(e) => setNewMember({...newMember, name: e.target.value})}/>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Email *</label>
-                <input required type="email" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" value={newMember.email} onChange={(e) => setNewMember({...newMember, email: e.target.value})}/>
+                <label htmlFor="add-email" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Email *</label>
+                <input id="add-email" required type="email" className={inputCls} value={newMember.email} onChange={(e) => setNewMember({...newMember, email: e.target.value})}/>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Số điện thoại</label>
-                <input type="tel" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" value={newMember.phone} onChange={(e) => setNewMember({...newMember, phone: e.target.value})}/>
+                <label htmlFor="add-phone" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Số điện thoại</label>
+                <input id="add-phone" type="tel" className={inputCls} value={newMember.phone} onChange={(e) => setNewMember({...newMember, phone: e.target.value})}/>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Địa chỉ</label>
-                <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" value={newMember.address} onChange={(e) => setNewMember({...newMember, address: e.target.value})}/>
+                <label htmlFor="add-address" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Địa chỉ</label>
+                <input id="add-address" type="text" className={inputCls} value={newMember.address} onChange={(e) => setNewMember({...newMember, address: e.target.value})}/>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Vai trò</label>
-                <select className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" value={newMember.role} onChange={(e) => setNewMember({...newMember, role: e.target.value as MemberRole})}>
+                <label htmlFor="add-role" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Vai trò</label>
+                <select id="add-role" className={inputCls} value={newMember.role} onChange={(e) => setNewMember({...newMember, role: e.target.value as MemberRole})}>
                   {Object.values(MemberRole).map(role => <option key={role} value={role}>{role}</option>)}
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Ghi chú</label>
-                <textarea className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" rows={2} value={newMember.note} onChange={(e) => setNewMember({...newMember, note: e.target.value})}></textarea>
+                <label htmlFor="add-note" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Ghi chú</label>
+                <textarea id="add-note" className={inputCls} rows={2} value={newMember.note} onChange={(e) => setNewMember({...newMember, note: e.target.value})}></textarea>
               </div>
-              <div className="md:col-span-2 flex space-x-3 pt-4">
-                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors">Hủy</button>
-                <button type="submit" className="flex-1 py-2 bg-emerald-600 text-white font-bold hover:bg-emerald-700 rounded-xl transition-colors">Xác nhận</button>
+              <div className="md:col-span-2 flex space-x-3 pt-1">
+                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 text-gray-500 font-semibold hover:bg-slate-50 rounded-xl transition-colors border border-gray-200 text-sm">Hủy</button>
+                <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-200 text-sm active:scale-95">Xác nhận thêm</button>
               </div>
             </form>
           </div>
@@ -285,37 +281,41 @@ const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMembe
 
       {/* Edit Modal */}
       {editingMember && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-gray-100 bg-blue-50">
-              <h3 className="text-xl font-bold text-blue-900">Chỉnh sửa thành viên</h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
+            <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-indigo-900 to-blue-900 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white">Chỉnh sửa thành viên</h3>
+                <p className="text-indigo-300 text-xs mt-0.5">Cập nhật thông tin thành viên</p>
+              </div>
+              <button onClick={() => setEditingMember(null)} className="p-2 hover:bg-white/10 rounded-xl text-indigo-300"><X size={18}/></button>
             </div>
-            <form onSubmit={handleUpdateSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleUpdateSubmit} className="p-7 grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Họ tên *</label>
-                <input required type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" value={editingMember.name} onChange={(e) => setEditingMember({...editingMember, name: e.target.value})}/>
+                <label htmlFor="edit-name" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Họ tên *</label>
+                <input id="edit-name" required type="text" className={inputClsBlue} value={editingMember.name} onChange={(e) => setEditingMember({...editingMember, name: e.target.value})}/>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Email *</label>
-                <input required type="email" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" value={editingMember.email} onChange={(e) => setEditingMember({...editingMember, email: e.target.value})}/>
+                <label htmlFor="edit-email" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Email *</label>
+                <input id="edit-email" required type="email" className={inputClsBlue} value={editingMember.email} onChange={(e) => setEditingMember({...editingMember, email: e.target.value})}/>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Số điện thoại</label>
-                <input type="tel" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" value={editingMember.phone} onChange={(e) => setEditingMember({...editingMember, phone: e.target.value})}/>
+                <label htmlFor="edit-phone" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Số điện thoại</label>
+                <input id="edit-phone" type="tel" className={inputClsBlue} value={editingMember.phone} onChange={(e) => setEditingMember({...editingMember, phone: e.target.value})}/>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Địa chỉ</label>
-                <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" value={editingMember.address} onChange={(e) => setEditingMember({...editingMember, address: e.target.value})}/>
+                <label htmlFor="edit-address" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Địa chỉ</label>
+                <input id="edit-address" type="text" className={inputClsBlue} value={editingMember.address} onChange={(e) => setEditingMember({...editingMember, address: e.target.value})}/>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Vai trò</label>
-                <select className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" value={editingMember.role} onChange={(e) => setEditingMember({...editingMember, role: e.target.value as MemberRole})}>
+                <label htmlFor="edit-role" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Vai trò</label>
+                <select id="edit-role" className={inputClsBlue} value={editingMember.role} onChange={(e) => setEditingMember({...editingMember, role: e.target.value as MemberRole})}>
                   {Object.values(MemberRole).map(role => <option key={role} value={role}>{role}</option>)}
                 </select>
               </div>
-              <div className="md:col-span-2 flex space-x-3 pt-4">
-                <button type="button" onClick={() => setEditingMember(null)} className="flex-1 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors">Hủy</button>
-                <button type="submit" className="flex-1 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 rounded-xl transition-colors">Lưu thay đổi</button>
+              <div className="md:col-span-2 flex space-x-3 pt-1">
+                <button type="button" onClick={() => setEditingMember(null)} className="flex-1 py-3 text-gray-500 font-semibold hover:bg-slate-50 rounded-xl transition-colors border border-gray-200 text-sm">Hủy</button>
+                <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200 text-sm active:scale-95">Lưu thay đổi</button>
               </div>
             </form>
           </div>
@@ -324,16 +324,18 @@ const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMembe
 
       {/* Delete Modal */}
       {deletingMemberId && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><AlertTriangle size={32} /></div>
-              <h3 className="text-xl font-bold text-gray-900">Xác nhận xóa</h3>
-              <p className="text-gray-500 mt-2">Xóa thành viên này sẽ không ảnh hưởng đến lịch sử giao dịch nhưng bạn sẽ không thể chọn họ trong tương lai.</p>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[60] p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-scale-in">
+            <div className="p-9 text-center">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-red-100">
+                <AlertTriangle size={30} />
+              </div>
+              <h3 className="text-xl font-black text-gray-900">Xác nhận xóa?</h3>
+              <p className="text-gray-400 text-sm mt-2 leading-relaxed">Xóa thành viên không ảnh hưởng lịch sử giao dịch nhưng bạn sẽ không thể chọn họ trong tương lai.</p>
             </div>
-            <div className="p-6 bg-gray-50 flex gap-3">
-              <button onClick={() => setDeletingMemberId(null)} className="flex-1 py-2 text-gray-600 font-bold hover:bg-gray-200 rounded-xl transition-colors">Hủy</button>
-              <button onClick={confirmDelete} className="flex-1 py-2 bg-red-600 text-white font-bold hover:bg-red-700 rounded-xl transition-colors shadow-lg">Xóa ngay</button>
+            <div className="px-8 pb-8 flex gap-3">
+              <button onClick={() => setDeletingMemberId(null)} className="flex-1 py-3 text-gray-500 font-semibold hover:bg-slate-50 rounded-xl transition-colors border border-gray-200 text-sm">Hủy bỏ</button>
+              <button onClick={confirmDelete} className="flex-1 py-3 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-200 text-sm active:scale-95">Xóa ngay</button>
             </div>
           </div>
         </div>

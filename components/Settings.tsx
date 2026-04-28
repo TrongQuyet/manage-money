@@ -83,63 +83,72 @@ const Settings: React.FC<Props> = ({ binId: orgId, state }) => {
   );
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Add new category */}
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
-            <Tag size={24} />
+    <div className="max-w-2xl mx-auto space-y-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Header */}
+        <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-slate-900 to-slate-800">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/15 p-2.5 rounded-xl border border-white/20">
+              <Tag size={20} className="text-blue-300" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Quản lý danh mục</h3>
+              <p className="text-slate-400 text-xs mt-0.5">Thêm và xóa danh mục thu chi</p>
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-gray-900">Quản lý danh mục</h3>
         </div>
 
-        <form onSubmit={handleAdd} className="flex gap-3 mb-6">
-          <select
-            value={newCatType}
-            onChange={(e) => setNewCatType(e.target.value as 'INCOME' | 'EXPENSE')}
-            className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="INCOME">Thu nhập</option>
-            <option value="EXPENSE">Chi tiêu</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Tên danh mục mới..."
-            required
-            value={newCatName}
-            onChange={(e) => setNewCatName(e.target.value)}
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-          />
+        <div className="p-7 space-y-5">
+          {/* Add form */}
+          <form onSubmit={handleAdd} className="flex gap-2.5">
+            <select
+              value={newCatType}
+              onChange={(e) => setNewCatType(e.target.value as 'INCOME' | 'EXPENSE')}
+              className="px-3 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            >
+              <option value="INCOME">Thu nhập</option>
+              <option value="EXPENSE">Chi tiêu</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Tên danh mục mới..."
+              required
+              value={newCatName}
+              onChange={(e) => setNewCatName(e.target.value)}
+              className="flex-1 px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all"
+            />
+            <button
+              type="submit"
+              disabled={isProcessing}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-xl transition-all font-semibold text-sm disabled:opacity-50 shadow-lg shadow-blue-200 active:scale-95 whitespace-nowrap"
+            >
+              <Plus size={15} /> Thêm
+            </button>
+          </form>
+
           <button
-            type="submit"
+            onClick={handleSeedDefaults}
             disabled={isProcessing}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold text-sm disabled:opacity-50"
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-50 group"
           >
-            <Plus size={16} /> Thêm
+            <RefreshCw size={13} className={`${isProcessing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+            Khôi phục danh mục mặc định
           </button>
-        </form>
 
-        <button
-          onClick={handleSeedDefaults}
-          disabled={isProcessing}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors mb-6 disabled:opacity-50"
-        >
-          <RefreshCw size={14} className={isProcessing ? 'animate-spin' : ''} />
-          Khôi phục danh mục mặc định
-        </button>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="flex items-center gap-2 text-sm font-bold text-emerald-700 uppercase tracking-widest mb-3">
-              <ArrowUpCircle size={14} /> Thu nhập ({incomeCategories.length})
-            </h4>
-            <CategoryList items={incomeCategories} type="INCOME" />
-          </div>
-          <div>
-            <h4 className="flex items-center gap-2 text-sm font-bold text-red-700 uppercase tracking-widest mb-3">
-              <ArrowDownCircle size={14} /> Chi tiêu ({expenseCategories.length})
-            </h4>
-            <CategoryList items={expenseCategories} type="EXPENSE" />
+          {/* Category lists */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <h4 className="flex items-center gap-2 text-[11px] font-bold text-emerald-600 uppercase tracking-widest mb-3">
+                <ArrowUpCircle size={13} /> Thu nhập ({incomeCategories.length})
+              </h4>
+              <CategoryList items={incomeCategories} type="INCOME" />
+            </div>
+            <div>
+              <h4 className="flex items-center gap-2 text-[11px] font-bold text-red-500 uppercase tracking-widest mb-3">
+                <ArrowDownCircle size={13} /> Chi tiêu ({expenseCategories.length})
+              </h4>
+              <CategoryList items={expenseCategories} type="EXPENSE" />
+            </div>
           </div>
         </div>
       </div>

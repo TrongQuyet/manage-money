@@ -9,10 +9,63 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            keyframes: {
+              'fade-in-up': {
+                '0%': { opacity: '0', transform: 'translateY(16px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' }
+              },
+              'fade-in': {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' }
+              },
+              'scale-in': {
+                '0%': { opacity: '0', transform: 'scale(0.95)' },
+                '100%': { opacity: '1', transform: 'scale(1)' }
+              },
+              'slide-in-left': {
+                '0%': { opacity: '0', transform: 'translateX(-12px)' },
+                '100%': { opacity: '1', transform: 'translateX(0)' }
+              },
+            },
+            animation: {
+              'fade-in-up': 'fade-in-up 0.4s ease-out both',
+              'fade-in': 'fade-in 0.25s ease-out both',
+              'scale-in': 'scale-in 0.2s ease-out both',
+              'slide-in-left': 'slide-in-left 0.3s ease-out both',
+            }
+          }
+        }
+      }
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
+        }
+        .stagger-1 { animation-delay: 50ms; }
+        .stagger-2 { animation-delay: 100ms; }
+        .stagger-3 { animation-delay: 150ms; }
+        .stagger-4 { animation-delay: 200ms; }
+        .stagger-5 { animation-delay: 250ms; }
+        .stagger-6 { animation-delay: 300ms; }
+        .nav-glow { box-shadow: inset 3px 0 0 #10b981; }
+        .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -8px rgba(0,0,0,0.12); }
+        .glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .sidebar-item-active::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 3px;
+          height: 20px;
+          background: linear-gradient(to bottom, #10b981, #14b8a6);
+          border-radius: 0 4px 4px 0;
         }
     </style>
 <script type="importmap">
