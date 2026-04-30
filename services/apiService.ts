@@ -56,7 +56,7 @@ export const logout = async () => {
 };
 
 export const getMe = async (): Promise<User | null> => {
-  const res = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+  const res = await apiFetch('/auth/me');
   return json<User>(res);
 };
 
