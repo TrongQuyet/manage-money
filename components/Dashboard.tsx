@@ -5,8 +5,7 @@ import {
   PieChart as RePieChart, Pie
 } from 'recharts';
 import { Transaction, AppState } from '../types';
-import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard, Heart } from 'lucide-react';
-import defaultLogo from "../Assets/a9pro.jpg";
+import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard, Heart, ImageOff } from 'lucide-react';
 
 interface Props {
   state: AppState;
@@ -38,11 +37,19 @@ const Dashboard: React.FC<Props> = ({ state, dashboardImage }) => {
     <div className="space-y-6">
       {/* Group Banner Section */}
       <div className="relative h-56 md:h-72 w-full rounded-3xl overflow-hidden shadow-2xl shadow-slate-200/60 group border-2 border-white/50 animate-fade-in">
-        <img
-          src={dashboardImage || defaultLogo}
-          alt="Dashboard banner"
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
+        {dashboardImage ? (
+          <img
+            src={dashboardImage}
+            alt="Dashboard banner"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-slate-800 via-emerald-900 to-teal-800 flex items-center justify-center transition-transform duration-700 group-hover:scale-105">
+            <div className="flex flex-col items-center gap-3 opacity-20">
+              <ImageOff size={64} className="text-white" />
+            </div>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent"></div>
         <div className="absolute bottom-0 left-0 p-7 w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
