@@ -1,14 +1,20 @@
 
-import React, { useState } from 'react';
-import { Transaction, TransactionType, AppState } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Transaction, TransactionType, Member } from '../types';
 import { CATEGORIES } from '../constants';
-import { 
-  PlusCircle, ShieldAlert, Edit2, Trash2, UserCheck, AlertTriangle, 
+import {
+  PlusCircle, ShieldAlert, Edit2, Trash2, UserCheck, AlertTriangle,
   Eye, X, Calendar, Tag, FileText, User, CreditCard, ArrowUpCircle, ArrowDownCircle, Search
 } from 'lucide-react';
+import Pagination from './Pagination';
+import * as api from '../services/apiService';
+
+const PAGE_SIZE = 10;
 
 interface Props {
-  state: AppState;
+  orgSlug: string;
+  members: Member[];
+  refreshKey: number;
   onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (id: number) => void;
@@ -16,14 +22,19 @@ interface Props {
   availableCategories?: { INCOME: string[]; EXPENSE: string[] };
 }
 
-const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpdateTransaction, onDeleteTransaction, isAdmin, availableCategories }) => {
+const TransactionManagement: React.FC<Props> = ({ orgSlug, members, refreshKey, onAddTransaction, onUpdateTransaction, onDeleteTransaction, isAdmin, availableCategories }) => {
   const CATS = availableCategories ?? CATEGORIES;
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [deletingTxId, setDeletingTxId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isFetching, setIsFetching] = useState(false);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [newTx, setNewTx] = useState({
     type: 'INCOME' as TransactionType,
     amount: 0,
@@ -31,8 +42,16 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
     category: (availableCategories ?? CATEGORIES).INCOME[0],
     recipient: '',
     date: new Date().toISOString().split('T')[0],
-    memberId: state.members[0]?.id ?? 0
+    memberId: members[0]?.id ?? 0
   });
+
+  useEffect(() => {
+    if (!orgSlug) return;
+    setIsFetching(true);
+    api.getTransactions(orgSlug, { page: currentPage, limit: PAGE_SIZE, search: searchTerm || undefined })
+      .then(res => { setTransactions(res.data); setTotal(res.total); })
+      .finally(() => setIsFetching(false));
+  }, [orgSlug, currentPage, searchTerm, refreshKey]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,16 +82,7 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
     });
   };
 
-  const filteredTransactions = state.transactions.filter(tx => {
-    const s = searchTerm.toLowerCase();
-    const member = state.members.find(m => m.id === tx.memberId);
-    return (
-      tx.description.toLowerCase().includes(s) ||
-      tx.category.toLowerCase().includes(s) ||
-      (member?.name || '').toLowerCase().includes(s) ||
-      (tx.recipient || '').toLowerCase().includes(s)
-    );
-  });
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <>
@@ -80,7 +90,8 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="text-xl font-bold text-gray-900">Lịch sử giao dịch</h3>
-          <p className="text-sm text-gray-400 mt-0.5">{filteredTransactions.length} giao dịch</p>
+          <p className="text-sm text-gray-400 mt-0.5">{total} giao dịch</p>
+          {totalPages > 1 && <p className="text-xs text-gray-400">Trang {currentPage}/{totalPages}</p>}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2.5">
@@ -91,7 +102,11 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
               placeholder="Tìm mô tả, danh mục, tên..."
               className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent w-full md:w-60 text-sm shadow-sm transition-all"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                if (searchDebounce.current) clearTimeout(searchDebounce.current);
+                const val = e.target.value;
+                searchDebounce.current = setTimeout(() => { setSearchTerm(val); setCurrentPage(1); }, 300);
+              }}
             />
           </div>
           {isAdmin ? (
@@ -124,8 +139,11 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {[...filteredTransactions].reverse().map((tx) => {
-                const member = state.members.find(m => m.id === tx.memberId);
+              {isFetching && transactions.length === 0 && (
+                <tr><td colSpan={5} className="px-6 py-20 text-center text-gray-400 text-sm">Đang tải...</td></tr>
+              )}
+              {transactions.map((tx) => {
+                const member = members.find(m => m.id === tx.memberId);
                 return (
                   <tr
                     key={tx.id}
@@ -184,12 +202,13 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
                   </tr>
                 );
               })}
-              {filteredTransactions.length === 0 && (
+              {!isFetching && transactions.length === 0 && (
                 <tr><td colSpan={5} className="px-6 py-20 text-center text-gray-400 text-sm">Không tìm thấy giao dịch nào phù hợp.</td></tr>
               )}
             </tbody>
           </table>
         </div>
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
     </div>
           {/* Transaction Detail Modal */}
@@ -214,7 +233,7 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
               {[
                 { icon: <Calendar size={16} />, label: 'Thời gian', value: new Date(selectedTx.date).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
                 { icon: <FileText size={16} />, label: 'Nội dung', value: selectedTx.description },
-                { icon: <User size={16} />, label: 'Người thực hiện', value: state.members.find(m => m.id === selectedTx.memberId)?.name || 'Ẩn danh' },
+                { icon: <User size={16} />, label: 'Người thực hiện', value: members.find(m => m.id === selectedTx.memberId)?.name || 'Ẩn danh' },
                 ...(selectedTx.recipient ? [{ icon: <UserCheck size={16} />, label: 'Người thụ hưởng', value: selectedTx.recipient }] : []),
               ].map((item) => (
                 <div key={item.label} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
@@ -277,14 +296,14 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Người nộp/chi</label>
                   <select className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm transition-all" value={newTx.memberId} onChange={(e) => setNewTx({...newTx, memberId: e.target.value})}>
-                    {state.members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                    {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Người hưởng</label>
                   <select className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm transition-all" value={newTx.recipient} onChange={(e) => setNewTx({...newTx, recipient: e.target.value})}>
                     <option value="">-- Không chọn --</option>
-                    {state.members.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+                    {members.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
                   </select>
                 </div>
               </div>
@@ -333,14 +352,14 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Người thực hiện</label>
                   <select className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all" value={editingTx.memberId} onChange={(e) => setEditingTx({...editingTx, memberId: e.target.value})}>
-                    {state.members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                    {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Người hưởng</label>
                   <select className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all" value={editingTx.recipient} onChange={(e) => setEditingTx({...editingTx, recipient: e.target.value})}>
                     <option value="">-- Không chọn --</option>
-                    {state.members.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+                    {members.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
                   </select>
                 </div>
               </div>

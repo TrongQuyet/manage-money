@@ -89,9 +89,33 @@ export const createOrg = async (name: string, slug: string, description?: string
 
 // ─── Members ─────────────────────────────────────────────────────────────────
 
-export const getMembers = async (orgSlug: string): Promise<Member[]> => {
-  const res = await apiFetch(`/${orgSlug}/members`);
-  return (await json<Member[]>(res)) ?? [];
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+}
+
+interface PaginationParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+const buildQuery = (params?: PaginationParams): string => {
+  const q = new URLSearchParams();
+  if (params?.page) q.set('page', String(params.page));
+  if (params?.limit) q.set('limit', String(params.limit));
+  if (params?.search) q.set('search', params.search);
+  const s = q.toString();
+  return s ? `?${s}` : '';
+};
+
+export const getMembers = async (
+  orgSlug: string,
+  params?: PaginationParams,
+): Promise<PaginatedResponse<Member>> => {
+  const res = await apiFetch(`/${orgSlug}/members${buildQuery(params)}`);
+  const raw = await json<PaginatedResponse<Member>>(res);
+  return { data: raw?.data ?? [], total: raw?.total ?? 0 };
 };
 
 export const createMember = async (orgSlug: string, data: Omit<Member, 'id' | 'joinedAt'>): Promise<Member | null> => {
@@ -147,10 +171,16 @@ const mapApiTx = (tx: ApiTransaction): Transaction => ({
   recipient: tx.recipient ?? '',
 });
 
-export const getTransactions = async (orgSlug: string): Promise<Transaction[]> => {
-  const res = await apiFetch(`/${orgSlug}/transactions`);
-  const data = await json<ApiTransaction[]>(res);
-  return (data ?? []).map(mapApiTx);
+export const getTransactions = async (
+  orgSlug: string,
+  params?: PaginationParams,
+): Promise<PaginatedResponse<Transaction>> => {
+  const res = await apiFetch(`/${orgSlug}/transactions${buildQuery(params)}`);
+  const raw = await json<{ data: ApiTransaction[]; total: number }>(res);
+  return {
+    data: (raw?.data ?? []).map(mapApiTx),
+    total: raw?.total ?? 0,
+  };
 };
 
 export const getTransactionSummary = async (orgSlug: string) => {

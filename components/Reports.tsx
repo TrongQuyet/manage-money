@@ -1,11 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   PieChart as RePieChart, Pie
 } from 'recharts';
 import { AppState } from '../types';
 import { CreditCard, TrendingUp, TrendingDown, Target, Download } from 'lucide-react';
+import Pagination from './Pagination';
+
+const MEMBER_PAGE_SIZE = 5;
 
 interface Props {
   state: AppState;
@@ -13,6 +16,7 @@ interface Props {
 
 const Reports: React.FC<Props> = ({ state }) => {
   const { transactions, members, currentBalance } = state;
+  const [memberPage, setMemberPage] = useState(1);
 
   // 1. Group by category (Expenses)
   const expenseByCategory = transactions
@@ -58,6 +62,10 @@ const Reports: React.FC<Props> = ({ state }) => {
       total: income - expense
     };
   }).filter(m => m.income > 0 || m.expense > 0);
+
+  const sortedMemberStats = [...memberStats].sort((a, b) => b.income - a.income);
+  const totalMemberPages = Math.ceil(sortedMemberStats.length / MEMBER_PAGE_SIZE);
+  const paginatedMemberStats = sortedMemberStats.slice((memberPage - 1) * MEMBER_PAGE_SIZE, memberPage * MEMBER_PAGE_SIZE);
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b', '#2dd4bf'];
 
@@ -258,7 +266,7 @@ const Reports: React.FC<Props> = ({ state }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {memberStats.sort((a, b) => b.income - a.income).map((stat) => (
+                {paginatedMemberStats.map((stat) => (
                   <tr key={stat.name} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-3.5 px-3 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
@@ -278,6 +286,7 @@ const Reports: React.FC<Props> = ({ state }) => {
               </tbody>
             </table>
           </div>
+          <Pagination currentPage={memberPage} totalPages={totalMemberPages} onPageChange={setMemberPage} />
         </div>
       </div>
     </div>

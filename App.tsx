@@ -40,6 +40,8 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
 
   const [myMemberId, setMyMemberId] = useState<number | null>(null);
+  const [txRefreshKey, setTxRefreshKey] = useState(0);
+  const [memberRefreshKey, setMemberRefreshKey] = useState(0);
 
   // Org state
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
@@ -64,7 +66,7 @@ const App: React.FC = () => {
   // Load dữ liệu org — public, không cần đăng nhập
   // isLoggedIn dùng để quyết định có seed categories không (seed cần auth)
   const loadOrgData = useCallback(async (slug: string, isLoggedIn: boolean) => {
-    const [members, transactions, categories] = await Promise.all([
+    const [membersRes, transactionsRes, categories] = await Promise.all([
       api.getMembers(slug),
       api.getTransactions(slug),
       api.getCategories(slug),
@@ -75,13 +77,13 @@ const App: React.FC = () => {
       finalCategories = await api.seedCategories(slug);
     }
 
-    const balance = transactions.reduce(
+    const balance = transactionsRes.data.reduce(
       (acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0
     );
 
     setState({
-      members,
-      transactions,
+      members: membersRes.data,
+      transactions: transactionsRes.data,
       categories: finalCategories,
       currentBalance: balance,
       orgId: slug,
@@ -217,6 +219,7 @@ const App: React.FC = () => {
     const newMember = await api.createMember(orgSlugForApi, memberData);
     if (newMember) {
       setState(prev => ({ ...prev, members: [...prev.members, newMember] }));
+      setMemberRefreshKey(k => k + 1);
       setLastSaved(new Date());
     }
     setIsSaving(false);
@@ -232,6 +235,7 @@ const App: React.FC = () => {
         ...prev,
         members: prev.members.map(m => m.id === saved.id ? saved : m),
       }));
+      setMemberRefreshKey(k => k + 1);
       setLastSaved(new Date());
     }
     setIsSaving(false);
@@ -246,6 +250,7 @@ const App: React.FC = () => {
         ...prev,
         members: prev.members.map(m => m.id === saved.id ? { ...m, ...saved } : m),
       }));
+      setMemberRefreshKey(k => k + 1);
       setLastSaved(new Date());
     }
     setIsSaving(false);
@@ -258,6 +263,7 @@ const App: React.FC = () => {
     const ok = await api.deleteMember(orgSlugForApi, id);
     if (ok) {
       setState(prev => ({ ...prev, members: prev.members.filter(m => m.id !== id) }));
+      setMemberRefreshKey(k => k + 1);
       setLastSaved(new Date());
     }
     setIsSaving(false);
@@ -277,6 +283,7 @@ const App: React.FC = () => {
     const saved = await api.createTransaction(orgSlugForApi, txData, categoryId);
     if (saved) {
       setState(prev => ({ ...prev, transactions: [...prev.transactions, saved] }));
+      setTxRefreshKey(k => k + 1);
       setLastSaved(new Date());
     }
     setIsSaving(false);
@@ -293,6 +300,7 @@ const App: React.FC = () => {
         ...prev,
         transactions: prev.transactions.map(t => t.id === saved.id ? saved : t),
       }));
+      setTxRefreshKey(k => k + 1);
       setLastSaved(new Date());
     }
     setIsSaving(false);
@@ -305,6 +313,7 @@ const App: React.FC = () => {
     const ok = await api.deleteTransaction(orgSlugForApi, id);
     if (ok) {
       setState(prev => ({ ...prev, transactions: prev.transactions.filter(t => t.id !== id) }));
+      setTxRefreshKey(k => k + 1);
       setLastSaved(new Date());
     }
     setIsSaving(false);
@@ -354,7 +363,8 @@ const App: React.FC = () => {
       case 'members':
         return (
           <MemberManagement
-            members={state.members}
+            orgSlug={currentOrg?.slug ?? ''}
+            refreshKey={memberRefreshKey}
             onAddMember={handleAddMember}
             onUpdateMember={handleUpdateMember}
             onDeleteMember={handleDeleteMember}
@@ -366,7 +376,9 @@ const App: React.FC = () => {
       case 'transactions':
         return (
           <TransactionManagement
-            state={state}
+            orgSlug={currentOrg?.slug ?? ''}
+            members={state.members}
+            refreshKey={txRefreshKey}
             onAddTransaction={handleAddTransaction}
             onUpdateTransaction={handleUpdateTransaction}
             onDeleteTransaction={handleDeleteTransaction}
