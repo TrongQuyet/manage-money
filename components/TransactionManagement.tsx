@@ -11,7 +11,7 @@ interface Props {
   state: AppState;
   onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
-  onDeleteTransaction: (id: string) => void;
+  onDeleteTransaction: (id: number) => void;
   isAdmin: boolean;
   availableCategories?: { INCOME: string[]; EXPENSE: string[] };
 }
@@ -21,7 +21,7 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
-  const [deletingTxId, setDeletingTxId] = useState<string | null>(null);
+  const [deletingTxId, setDeletingTxId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [newTx, setNewTx] = useState({
@@ -31,7 +31,7 @@ const TransactionManagement: React.FC<Props> = ({ state, onAddTransaction, onUpd
     category: (availableCategories ?? CATEGORIES).INCOME[0],
     recipient: '',
     date: new Date().toISOString().split('T')[0],
-    memberId: state.members[0]?.id || ''
+    memberId: state.members[0]?.id ?? 0
   });
 
   const handleSubmit = (e: React.FormEvent) => {

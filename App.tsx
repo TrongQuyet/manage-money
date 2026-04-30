@@ -39,7 +39,7 @@ const App: React.FC = () => {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
-  const [myMemberId, setMyMemberId] = useState<string | null>(null);
+  const [myMemberId, setMyMemberId] = useState<number | null>(null);
 
   // Org state
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
@@ -251,7 +251,7 @@ const App: React.FC = () => {
     setIsSaving(false);
   };
 
-  const handleDeleteMember = async (id: string) => {
+  const handleDeleteMember = async (id: number) => {
     if (!requireAdmin(() => {})) return;
     if (!orgSlugForApi) return;
     setIsSaving(true);
@@ -265,7 +265,7 @@ const App: React.FC = () => {
 
   // ─── Transaction helpers ────────────────────────────────────────────────────
 
-  const lookupCategoryId = (categoryName: string, type: string): string | undefined => {
+  const lookupCategoryId = (categoryName: string, type: string): number | undefined => {
     return state.categories.find(c => c.name === categoryName && c.type === type)?.id;
   };
 
@@ -298,7 +298,7 @@ const App: React.FC = () => {
     setIsSaving(false);
   };
 
-  const handleDeleteTransaction = async (id: string) => {
+  const handleDeleteTransaction = async (id: number) => {
     if (!requireAdmin(() => {})) return;
     if (!orgSlugForApi) return;
     setIsSaving(true);

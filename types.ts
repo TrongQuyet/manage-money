@@ -7,7 +7,7 @@ export enum MemberRole {
 }
 
 export interface Member {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone: string;
@@ -20,32 +20,32 @@ export interface Member {
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
 export interface Category {
-  id: string;
+  id: number;
   name: string;
   type: TransactionType;
   isDefault: boolean;
 }
 
 export interface Transaction {
-  id: string;
+  id: number;
   type: TransactionType;
   amount: number;
   description: string;
-  category: string;       // display name
-  categoryId?: string;    // UUID for API
+  category: string;
+  categoryId?: number;
   recipient: string;
   date: string;
-  memberId: string;
+  memberId: number;
 }
 
 export interface User {
-  id: string;
+  id: number;
   user_name: string;
   display_name?: string;
 }
 
 export interface Organization {
-  id: string;
+  id: number;
   name: string;
   slug: string;
   description?: string;

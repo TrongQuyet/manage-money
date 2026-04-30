@@ -102,7 +102,7 @@ export const createMember = async (orgSlug: string, data: Omit<Member, 'id' | 'j
   return json<Member>(res);
 };
 
-export const updateMember = async (orgSlug: string, id: string, data: Partial<Member>): Promise<Member | null> => {
+export const updateMember = async (orgSlug: string, id: number, data: Partial<Member>): Promise<Member | null> => {
   const res = await apiFetch(`/${orgSlug}/members/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -110,7 +110,7 @@ export const updateMember = async (orgSlug: string, id: string, data: Partial<Me
   return json<Member>(res);
 };
 
-export const deleteMember = async (orgSlug: string, id: string): Promise<boolean> => {
+export const deleteMember = async (orgSlug: string, id: number): Promise<boolean> => {
   const res = await apiFetch(`/${orgSlug}/members/${id}`, { method: 'DELETE' });
   return res.status === 204;
 };
@@ -134,8 +134,8 @@ export const updateOwnMember = async (
 // ─── Transactions ────────────────────────────────────────────────────────────
 
 interface ApiTransaction extends Omit<Transaction, 'category'> {
-  category: { id: string; name: string; type: string } | null;
-  categoryId: string | null;
+  category: { id: number; name: string; type: string } | null;
+  categoryId: number | null;
 }
 
 const mapApiTx = (tx: ApiTransaction): Transaction => ({
@@ -143,7 +143,7 @@ const mapApiTx = (tx: ApiTransaction): Transaction => ({
   amount: Number(tx.amount),
   category: tx.category?.name ?? '',
   categoryId: tx.categoryId ?? undefined,
-  memberId: tx.memberId ?? '',
+  memberId: tx.memberId ?? 0,
   recipient: tx.recipient ?? '',
 });
 
@@ -161,7 +161,7 @@ export const getTransactionSummary = async (orgSlug: string) => {
 export const createTransaction = async (
   orgSlug: string,
   data: Omit<Transaction, 'id'>,
-  categoryId?: string,
+  categoryId?: number,
 ): Promise<Transaction | null> => {
   const payload = {
     type: data.type,
@@ -182,9 +182,9 @@ export const createTransaction = async (
 
 export const updateTransaction = async (
   orgSlug: string,
-  id: string,
+  id: number,
   data: Partial<Transaction>,
-  categoryId?: string,
+  categoryId?: number,
 ): Promise<Transaction | null> => {
   const payload = {
     ...(data.type && { type: data.type }),
@@ -203,7 +203,7 @@ export const updateTransaction = async (
   return tx ? mapApiTx(tx) : null;
 };
 
-export const deleteTransaction = async (orgSlug: string, id: string): Promise<boolean> => {
+export const deleteTransaction = async (orgSlug: string, id: number): Promise<boolean> => {
   const res = await apiFetch(`/${orgSlug}/transactions/${id}`, { method: 'DELETE' });
   return res.status === 204;
 };
@@ -228,7 +228,7 @@ export const createCategory = async (orgSlug: string, name: string, type: 'INCOM
   return json<Category>(res);
 };
 
-export const updateCategory = async (orgSlug: string, id: string, data: Partial<Category>): Promise<Category | null> => {
+export const updateCategory = async (orgSlug: string, id: number, data: Partial<Category>): Promise<Category | null> => {
   const res = await apiFetch(`/${orgSlug}/categories/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -236,7 +236,7 @@ export const updateCategory = async (orgSlug: string, id: string, data: Partial<
   return json<Category>(res);
 };
 
-export const deleteCategory = async (orgSlug: string, id: string): Promise<boolean> => {
+export const deleteCategory = async (orgSlug: string, id: number): Promise<boolean> => {
   const res = await apiFetch(`/${orgSlug}/categories/${id}`, { method: 'DELETE' });
   return res.status === 204;
 };

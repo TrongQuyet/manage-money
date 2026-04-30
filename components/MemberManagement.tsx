@@ -10,9 +10,9 @@ interface Props {
   members: Member[];
   onAddMember: (member: Omit<Member, 'id' | 'joinedAt'>) => void;
   onUpdateMember: (member: Member) => void;
-  onDeleteMember: (id: string) => void;
+  onDeleteMember: (id: number) => void;
   isAdmin: boolean;
-  myMemberId?: string | null;
+  myMemberId?: number | null;
   onUpdateOwnMember?: (data: Pick<Member, 'id' | 'name' | 'email' | 'phone' | 'address'>) => void;
 }
 
@@ -20,7 +20,7 @@ const MemberManagement: React.FC<Props> = ({ members, onAddMember, onUpdateMembe
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
+  const [deletingMemberId, setDeletingMemberId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [newMember, setNewMember] = useState({

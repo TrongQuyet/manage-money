@@ -19,7 +19,8 @@
       "Bash(docker network *)",
       "Bash(docker compose *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3333)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3333)",
+      "Bash(find c:\\\\\\\\Users\\\\\\\\ADMIN\\\\\\\\Herd\\\\\\\\manage-money -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" -o -name \"*.json\" \\\\\\) -not -path \"*/node_modules/*\")"
     ]
   }
 }
