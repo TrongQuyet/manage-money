@@ -4,15 +4,16 @@ import {
   Tooltip, ResponsiveContainer, Cell,
   PieChart as RePieChart, Pie
 } from 'recharts';
-import { Transaction, AppState } from '../types';
+import { Transaction, AppState, OrgSettings } from '../types';
 import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard, Heart, ImageOff } from 'lucide-react';
 
 interface Props {
   state: AppState;
   dashboardImage?: string;
+  orgSettings?: OrgSettings;
 }
 
-const Dashboard: React.FC<Props> = ({ state, dashboardImage }) => {
+const Dashboard: React.FC<Props> = ({ state, dashboardImage, orgSettings }) => {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   const totalIncome = state.transactions
@@ -54,13 +55,13 @@ const Dashboard: React.FC<Props> = ({ state, dashboardImage }) => {
         <div className="absolute bottom-0 left-0 p-7 w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 mb-2">
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-500/30">Official Group</span>
-              <span className="bg-white/15 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest border border-white/20">Since 2021</span>
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-500/30">{orgSettings?.group_badge || 'Official Group'}</span>
+              <span className="bg-white/15 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest border border-white/20">Since {orgSettings?.since_year || '2021'}</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter drop-shadow-lg">Trùm A9</h1>
+            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter drop-shadow-lg">{orgSettings?.group_name || 'Trùm A9'}</h1>
             <p className="text-emerald-300 font-semibold text-sm flex items-center gap-1.5">
               <Heart size={14} className="fill-emerald-400 text-emerald-400" />
-              Gắn kết anh em - Vững bền ngân quỹ
+              {orgSettings?.group_tagline || 'Gắn kết anh em - Vững bền ngân quỹ'}
             </p>
           </div>
           <div className="hidden md:flex items-center gap-5 bg-white/10 backdrop-blur-xl px-5 py-4 rounded-2xl border border-white/15">

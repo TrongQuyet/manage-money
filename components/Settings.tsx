@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { AppState, Category, OrgSettings } from '../types';
 import * as api from '../services/apiService';
-import { Tag, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Image, Save } from 'lucide-react';
+import { Tag, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Image, Save, Layout } from 'lucide-react';
 
 interface Props {
   binId: string;       // orgId
@@ -20,6 +20,29 @@ const Settings: React.FC<Props> = ({ binId: orgId, state, orgSettings, onSetting
   const [imagePreview, setImagePreview] = useState<string>(orgSettings.dashboard_image ?? '');
   const [isSavingImage, setIsSavingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [groupName, setGroupName] = useState(orgSettings.group_name ?? '');
+  const [groupTagline, setGroupTagline] = useState(orgSettings.group_tagline ?? '');
+  const [groupBadge, setGroupBadge] = useState(orgSettings.group_badge ?? '');
+  const [sinceYear, setSinceYear] = useState(orgSettings.since_year ?? '');
+  const [isSavingGroup, setIsSavingGroup] = useState(false);
+
+  const handleSaveGroupInfo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orgId) return;
+    setIsSavingGroup(true);
+    await Promise.all([
+      api.updateOrgSetting(orgId, 'group_name', groupName),
+      api.updateOrgSetting(orgId, 'group_tagline', groupTagline),
+      api.updateOrgSetting(orgId, 'group_badge', groupBadge),
+      api.updateOrgSetting(orgId, 'since_year', sinceYear),
+    ]);
+    onSettingChange('group_name', groupName);
+    onSettingChange('group_tagline', groupTagline);
+    onSettingChange('group_badge', groupBadge);
+    onSettingChange('since_year', sinceYear);
+    setIsSavingGroup(false);
+  };
 
   const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -171,6 +194,79 @@ const Settings: React.FC<Props> = ({ binId: orgId, state, orgSettings, onSetting
           </div>
           <p className="text-xs text-gray-400">Ảnh được lưu trực tiếp, không cần cloud storage.</p>
         </div>
+      </div>
+
+      {/* Group Info */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-slate-900 to-slate-800">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/15 p-2.5 rounded-xl border border-white/20">
+              <Layout size={20} className="text-emerald-300" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Thông tin nhóm</h3>
+              <p className="text-slate-400 text-xs mt-0.5">Tên, khẩu hiệu và badge hiển thị trên dashboard</p>
+            </div>
+          </div>
+        </div>
+        <form onSubmit={handleSaveGroupInfo} className="p-7 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="group-name" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Tên nhóm</label>
+              <input
+                id="group-name"
+                type="text"
+                placeholder="Trùm A9"
+                value={groupName}
+                onChange={e => setGroupName(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label htmlFor="group-badge" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Badge (ví dụ: Official Group)</label>
+              <input
+                id="group-badge"
+                type="text"
+                placeholder="Official Group"
+                value={groupBadge}
+                onChange={e => setGroupBadge(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="group-tagline" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Khẩu hiệu</label>
+              <input
+                id="group-tagline"
+                type="text"
+                placeholder="Gắn kết anh em - Vững bền ngân quỹ"
+                value={groupTagline}
+                onChange={e => setGroupTagline(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label htmlFor="since-year" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Năm thành lập (Since)</label>
+              <input
+                id="since-year"
+                type="text"
+                placeholder="2021"
+                value={sinceYear}
+                onChange={e => setSinceYear(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={isSavingGroup}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-all shadow-lg shadow-emerald-200 active:scale-95"
+          >
+            <Save size={15} />
+            {isSavingGroup ? 'Đang lưu...' : 'Lưu thông tin nhóm'}
+          </button>
+        </form>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

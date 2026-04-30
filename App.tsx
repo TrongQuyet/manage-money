@@ -359,7 +359,7 @@ const App: React.FC = () => {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard state={state} dashboardImage={orgSettings.dashboard_image} />;
+        return <Dashboard state={state} dashboardImage={orgSettings.dashboard_image} orgSettings={orgSettings} />;
       case 'members':
         return (
           <MemberManagement
@@ -436,6 +436,17 @@ const App: React.FC = () => {
             </div>
           </div>
 
+          {/* Login button for guests */}
+          {!currentUser && (
+            <button
+              onClick={() => setShowLoginModal(true)}
+              className="w-full flex items-center justify-center space-x-2.5 px-4 py-3 mb-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 transition-all text-sm font-semibold shadow-lg shadow-emerald-500/30 group"
+            >
+              <LogIn size={16} className="group-hover:translate-x-0.5 transition-transform shrink-0" />
+              <span>Đăng nhập Admin</span>
+            </button>
+          )}
+
           {/* Nav */}
           <nav className="flex-1 space-y-1">
             {filteredNavItems.map((item, idx) => (
@@ -488,15 +499,7 @@ const App: React.FC = () => {
                   <span>Đăng xuất</span>
                 </button>
               </>
-            ) : (
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="w-full flex items-center justify-center space-x-2.5 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 transition-all text-sm font-semibold shadow-lg shadow-emerald-500/30 group"
-              >
-                <LogIn size={16} className="group-hover:translate-x-0.5 transition-transform shrink-0" />
-                <span>Đăng nhập Admin</span>
-              </button>
-            )}
+            ) : null}
           </div>
         </div>
       </aside>
