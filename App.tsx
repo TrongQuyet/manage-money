@@ -110,18 +110,25 @@ const App: React.FC = () => {
         api.getMyMember(slug).then((m) => setMyMemberId(m?.id ?? null)),
       );
     }
-    await Promise.all(tasks);
-    setIsLoading(false);
+    try {
+      await Promise.all(tasks);
+    } finally {
+      setIsLoading(false);
+    }
   }, [loadOrgData]);
 
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
-      const user = await api.getMe();
-      if (user) setCurrentUser(user);
-      if (orgSlug) {
-        await initOrgSession(orgSlug, user);
-      } else {
+      try {
+        const user = await api.getMe();
+        if (user) setCurrentUser(user);
+        if (orgSlug) {
+          await initOrgSession(orgSlug, user);
+        } else {
+          setIsLoading(false);
+        }
+      } catch {
         setIsLoading(false);
       }
     };

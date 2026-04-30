@@ -16,7 +16,10 @@
       "Bash(curl -s -X POST http://localhost:3334/api/auth/login -H 'Content-Type: application/json' -d '{\"user_name\":\"admin-lt\",\"password\":\"lienTrung2026\"}' -c /tmp/cookies_lt.txt)",
       "Bash(curl -s -X POST http://localhost:3334/api/auth/login -H 'Content-Type: application/json' -d '{\"user_name\":\"admin-a9\",\"password\":\"admin123\"}' -c /tmp/cookies_a9.txt)",
       "Bash(curl -s http://localhost:3334/api/organizations/mine -b /tmp/cookies_a9.txt)",
-      "Bash(docker network *)"
+      "Bash(docker network *)",
+      "Bash(docker compose *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3333)"
     ]
   }
 }
