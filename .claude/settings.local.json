@@ -20,7 +20,15 @@
       "Bash(docker compose *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3333)",
-      "Bash(find c:\\\\\\\\Users\\\\\\\\ADMIN\\\\\\\\Herd\\\\\\\\manage-money -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" -o -name \"*.json\" \\\\\\) -not -path \"*/node_modules/*\")"
+      "Bash(find c:\\\\\\\\Users\\\\\\\\ADMIN\\\\\\\\Herd\\\\\\\\manage-money -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" -o -name \"*.json\" \\\\\\) -not -path \"*/node_modules/*\")",
+      "Bash(xargs grep *)",
+      "Bash(curl -s \"http://localhost:3334/test-org/members?page=1&limit=10\")",
+      "Bash(curl -s \"http://localhost:3334/test-org/transactions?page=1&limit=10\")",
+      "Bash(docker exec *)",
+      "PowerShell(docker exec manage-money-api-dev ls /app/src/members/ 2>&1)",
+      "PowerShell(docker exec manage-money-api-dev grep -A5 \"async findAll\" /app/src/members/members.service.ts)",
+      "Bash(curl -s \"http://localhost:3334/api/lien-trung/members?page=1&limit=10\")",
+      "Bash(curl -s \"http://localhost:3334/api/lien-trung/transactions?page=1&limit=10\")"
     ]
   }
 }
