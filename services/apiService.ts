@@ -152,9 +152,10 @@ export const createMember = async (orgSlug: string, data: Omit<Member, 'id' | 'j
 };
 
 export const updateMember = async (orgSlug: string, id: number, data: Partial<Member>): Promise<Member | null> => {
+  const { name, email, phone, address, role, note } = data;
   const res = await apiFetch(`/${orgSlug}/members/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(data),
+    body: JSON.stringify({ name, email, phone, address, role, note }),
   });
   return json<Member>(res);
 };
