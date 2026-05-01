@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Member, Transaction, AppState, User, Organization, Category, OrgSettings } from './types';
 import { NAVIGATION_ITEMS, CATEGORIES } from './constants';
@@ -48,6 +48,8 @@ const App: React.FC = () => {
   const [orgNotFound, setOrgNotFound] = useState(false);
 
   const [state, setState] = useState<AppState>(EMPTY_STATE);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
   const [orgSettings, setOrgSettings] = useState<OrgSettings>({});
 
   // isAdmin dựa trên role thực tế trong org, không phải chỉ "đã đăng nhập"
@@ -154,6 +156,17 @@ const App: React.FC = () => {
     };
     init();
   }, [orgSlug, initOrgSession]);
+
+  useEffect(() => {
+    if (!showUserDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserDropdown]);
 
   // Recalculate balance when transactions change
   useEffect(() => {
@@ -555,16 +568,32 @@ const App: React.FC = () => {
               <Bell size={18} />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
             </button>
-            <div className="flex items-center space-x-3 pl-3 border-l border-gray-100">
-              <div className="text-right">
-                <p className="text-sm font-semibold text-gray-900 leading-tight">
-                  {currentUser ? (currentUser.display_name ?? currentUser.user_name) : 'Khách'}
-                </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">{isAdmin ? 'Quản trị viên' : currentUser ? 'Thành viên' : 'Người xem'}</p>
-              </div>
-              <div className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-sm ${isAdmin ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-md shadow-emerald-200' : 'bg-gray-100 text-gray-400'}`}>
-                {isAdmin ? 'AD' : currentUser ? currentUser.display_name?.[0]?.toUpperCase() ?? 'U' : 'G'}
-              </div>
+            <div className="relative pl-3 border-l border-gray-100" ref={userDropdownRef}>
+              <button
+                onClick={() => setShowUserDropdown(v => !v)}
+                className="flex items-center space-x-3 hover:bg-gray-50 rounded-xl px-2 py-1.5 transition-all"
+              >
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-gray-900 leading-tight">
+                    {currentUser ? (currentUser.display_name ?? currentUser.user_name) : 'Khách'}
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">{isAdmin ? 'Quản trị viên' : currentUser ? 'Thành viên' : 'Người xem'}</p>
+                </div>
+                <div className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-sm ${isAdmin ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-md shadow-emerald-200' : 'bg-gray-100 text-gray-400'}`}>
+                  {isAdmin ? 'AD' : currentUser ? currentUser.display_name?.[0]?.toUpperCase() ?? 'U' : 'G'}
+                </div>
+              </button>
+              {showUserDropdown && currentUser && (
+                <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                  <button
+                    onClick={() => { setShowUserDropdown(false); handleLogout(); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut size={15} />
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
