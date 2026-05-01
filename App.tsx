@@ -8,6 +8,7 @@ import MemberManagement from './components/MemberManagement';
 import TransactionManagement from './components/TransactionManagement';
 import Settings from './components/Settings';
 import Reports from './components/Reports';
+import LuckyWheel from './components/LuckyWheel';
 import * as api from './services/apiService';
 import {
   Menu, X, Wallet, LogOut, Bell, Loader2, CheckCircle2,
@@ -419,6 +420,8 @@ const App: React.FC = () => {
         );
       case 'reports':
         return <Reports state={state} />;
+      case 'lucky-wheel':
+        return <LuckyWheel members={state.members} />;
       case 'settings':
         return isAdmin ? (
           <Settings

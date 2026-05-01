@@ -6,6 +6,7 @@ import {
   PieChart,
   LayoutDashboard,
   Settings,
+  Disc3,
 } from 'lucide-react';
 import { Member, Transaction } from './types';
 
@@ -14,6 +15,7 @@ export const NAVIGATION_ITEMS = [
   { id: 'members', label: 'Thành viên', icon: <Users className="w-5 h-5" /> },
   { id: 'transactions', label: 'Giao dịch', icon: <CreditCard className="w-5 h-5" /> },
   { id: 'reports', label: 'Báo cáo', icon: <PieChart className="w-5 h-5" /> },
+  { id: 'lucky-wheel', label: 'Vòng quay', icon: <Disc3 className="w-5 h-5" /> },
   { id: 'settings', label: 'Danh mục', icon: <Settings className="w-5 h-5" /> },
 ];
 
