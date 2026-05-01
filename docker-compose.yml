@@ -5,6 +5,7 @@ services:
       args:
         GEMINI_API_KEY: ${GEMINI_API_KEY}
         VITE_API_URL: /api
+    container_name: manage-money-app
     ports:
       - "3333:80"
     restart: unless-stopped
