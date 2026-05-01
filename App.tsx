@@ -474,7 +474,7 @@ const App: React.FC = () => {
               className="w-full flex items-center justify-center space-x-2.5 px-4 py-3 mb-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 transition-all text-sm font-semibold shadow-lg shadow-emerald-500/30 group"
             >
               <LogIn size={16} className="group-hover:translate-x-0.5 transition-transform shrink-0" />
-              <span>Đăng nhập Admin</span>
+              <span>Đăng nhập</span>
             </button>
           )}
 
@@ -611,10 +611,10 @@ const App: React.FC = () => {
           <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-scale-in">
             <div className="px-8 pt-10 pb-8 text-center bg-gradient-to-br from-slate-900 to-slate-800">
               <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl shadow-emerald-500/30">
-                <ShieldCheck size={30} className="text-white" />
+                <LogIn size={30} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white">Xác thực Admin</h3>
-              <p className="text-slate-400 mt-2 text-sm">Vui lòng đăng nhập để thực hiện thay đổi</p>
+              <h3 className="text-2xl font-bold text-white">Đăng nhập</h3>
+              <p className="text-slate-400 mt-2 text-sm">Vui lòng đăng nhập để tiếp tục</p>
             </div>
             <form onSubmit={handleLogin} className="p-8 space-y-4">
               {loginError && (
