@@ -2,6 +2,31 @@
 import { API_BASE_URL } from '../constants';
 import { Member, Transaction, Category, Organization, User, OrgSettings } from '../types';
 
+export interface ActivityLog {
+  id: number;
+  userId: number | null;
+  userName: string | null;
+  action: string;
+  entityType: string | null;
+  entityId: number | null;
+  orgId: number | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: number;
+  userId: number | null;
+  userName: string | null;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  tableName: string;
+  recordId: number;
+  oldValues: Record<string, unknown> | null;
+  newValues: Record<string, unknown> | null;
+  orgId: number | null;
+  createdAt: string;
+}
+
 let isRefreshing = false;
 
 const apiFetch = async (path: string, options: RequestInit = {}): Promise<Response> => {
@@ -269,6 +294,28 @@ export const updateCategory = async (orgSlug: string, id: number, data: Partial<
 export const deleteCategory = async (orgSlug: string, id: number): Promise<boolean> => {
   const res = await apiFetch(`/${orgSlug}/categories/${id}`, { method: 'DELETE' });
   return res.status === 204;
+};
+
+// ─── Logs ─────────────────────────────────────────────────────────────────────
+
+export const getActivityLogs = async (
+  orgSlug: string,
+  page = 1,
+  limit = 20,
+): Promise<{ data: ActivityLog[]; total: number }> => {
+  const res = await apiFetch(`/${orgSlug}/logs/activity?page=${page}&limit=${limit}`);
+  const raw = await json<{ data: ActivityLog[]; total: number }>(res);
+  return { data: raw?.data ?? [], total: raw?.total ?? 0 };
+};
+
+export const getAuditLogs = async (
+  orgSlug: string,
+  page = 1,
+  limit = 20,
+): Promise<{ data: AuditLog[]; total: number }> => {
+  const res = await apiFetch(`/${orgSlug}/logs/audit?page=${page}&limit=${limit}`);
+  const raw = await json<{ data: AuditLog[]; total: number }>(res);
+  return { data: raw?.data ?? [], total: raw?.total ?? 0 };
 };
 
 // ─── Org Settings ─────────────────────────────────────────────────────────────

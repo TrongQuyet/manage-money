@@ -7,6 +7,8 @@ import {
   LayoutDashboard,
   Settings,
   Disc3,
+  Activity,
+  ClipboardList,
 } from 'lucide-react';
 import { Member, Transaction } from './types';
 
@@ -17,6 +19,8 @@ export const NAVIGATION_ITEMS = [
   { id: 'reports', label: 'Báo cáo', icon: <PieChart className="w-5 h-5" /> },
   { id: 'lucky-wheel', label: 'Vòng quay', icon: <Disc3 className="w-5 h-5" /> },
   { id: 'settings', label: 'Danh mục', icon: <Settings className="w-5 h-5" /> },
+  { id: 'activity-logs', label: 'Activity Log', icon: <Activity className="w-5 h-5" />, adminOnly: true },
+  { id: 'audit-logs', label: 'Audit Log', icon: <ClipboardList className="w-5 h-5" />, adminOnly: true },
 ];
 
 // Fallback categories (used until API categories are loaded)

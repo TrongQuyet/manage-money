@@ -9,6 +9,8 @@ import TransactionManagement from './components/TransactionManagement';
 import Settings from './components/Settings';
 import Reports from './components/Reports';
 import LuckyWheel from './components/LuckyWheel';
+import ActivityLogs from './components/ActivityLogs';
+import AuditLogs from './components/AuditLogs';
 import * as api from './services/apiService';
 import {
   Menu, X, Wallet, LogOut, Bell, Loader2, CheckCircle2,
@@ -238,7 +240,7 @@ const App: React.FC = () => {
   const orgSlugForApi = currentOrg?.slug ?? null;
 
   const filteredNavItems = NAVIGATION_ITEMS.filter(item => {
-    if (item.id === 'settings' && !isAdmin) return false;
+    if ((item as { adminOnly?: boolean }).adminOnly && !isAdmin) return false;
     return true;
   });
 
@@ -432,6 +434,10 @@ const App: React.FC = () => {
             onSettingChange={handleSettingChange}
           />
         ) : <Dashboard state={state} dashboardImage={orgSettings.dashboard_image} />;
+      case 'activity-logs':
+        return isAdmin ? <ActivityLogs orgSlug={currentOrg?.slug ?? ''} /> : null;
+      case 'audit-logs':
+        return isAdmin ? <AuditLogs orgSlug={currentOrg?.slug ?? ''} /> : null;
       default:
         return null;
     }
