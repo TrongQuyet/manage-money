@@ -204,15 +204,10 @@ const App: React.FC = () => {
         }
       }
 
-      // Cùng org — chỉ refresh role, memberId và data
+      // Cùng org — dùng lại initOrgSession để đảm bảo toàn bộ state được set đúng
       if (orgSlug) {
-        const [{ role }, , myMember] = await Promise.all([
-          api.getMyOrgRole(orgSlug),
-          loadOrgData(orgSlug, true),
-          api.getMyMember(orgSlug),
-        ]);
-        setOrgRole(role);
-        setMyMemberId(myMember?.id ?? null);
+        setIsLoading(true);
+        await initOrgSession(orgSlug, result.user);
       }
     } catch {
       setLoginError('Lỗi kết nối khi đăng nhập');
