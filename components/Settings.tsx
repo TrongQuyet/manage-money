@@ -141,7 +141,9 @@ const Settings: React.FC<Props> = ({ binId: orgId, state, orgSettings, onSetting
   );
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
+      {/* Left column: image + group info */}
+      <div className="space-y-5">
       {/* Dashboard Image */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-slate-900 to-slate-800">
@@ -268,7 +270,9 @@ const Settings: React.FC<Props> = ({ binId: orgId, state, orgSettings, onSetting
           </button>
         </form>
       </div>
+      </div>
 
+      {/* Right column: categories */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Header */}
         <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-slate-900 to-slate-800">

@@ -205,7 +205,7 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
 
       {/* Member Detail Modal */}
       {selectedMember && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[70] p-4 animate-fade-in">
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
             <div className="relative px-8 pt-8 pb-7 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
               <button
@@ -261,7 +261,7 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[70] p-4 animate-fade-in">
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
             <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-between">
               <div>
@@ -308,7 +308,7 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
 
       {/* Edit Modal */}
       {editingMember && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[70] p-4 animate-fade-in">
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
             <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-indigo-900 to-blue-900 flex items-center justify-between">
               <div>

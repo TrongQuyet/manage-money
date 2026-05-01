@@ -14,7 +14,7 @@ import AuditLogs from './components/AuditLogs';
 import * as api from './services/apiService';
 import {
   Menu, X, Wallet, LogOut, Bell, Loader2, CheckCircle2,
-  LogIn, ShieldCheck, ShieldAlert
+  LogIn, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 const EMPTY_STATE: AppState = {
@@ -31,6 +31,7 @@ const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -456,29 +457,51 @@ const App: React.FC = () => {
       </div>
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900 to-slate-800 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0 shadow-2xl shadow-black/40' : '-translate-x-full'}`}>
-        <div className="h-full flex flex-col p-5">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 ${isSidebarCollapsed ? 'md:w-16' : 'md:w-64'} bg-gradient-to-b from-slate-900 to-slate-800 transform transition-all duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0 shadow-2xl shadow-black/40' : '-translate-x-full'}`}>
+        <div className="h-full flex flex-col p-3 md:p-4">
           {/* Logo */}
-          <div className="hidden md:flex items-center space-x-3 mb-8 px-1">
-            <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-2.5 rounded-xl text-white shadow-lg shadow-emerald-500/30 shrink-0">
-              <Wallet size={22} />
+          {isSidebarCollapsed ? (
+            <div className="hidden md:flex flex-col items-center gap-2 mb-4">
+              <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-2.5 rounded-xl text-white shadow-lg shadow-emerald-500/30">
+                <Wallet size={22} />
+              </div>
+              <button
+                onClick={() => setIsSidebarCollapsed(false)}
+                title="Mở rộng"
+                className="p-1.5 text-slate-500 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
-            <div className="min-w-0">
-              <span className="font-extrabold text-base tracking-tight text-white block leading-tight truncate">
-                {currentOrg?.name ?? 'Quản lý quỹ'}
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Fund Manager</span>
+          ) : (
+            <div className="hidden md:flex items-center mb-6 px-1">
+              <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-2.5 rounded-xl text-white shadow-lg shadow-emerald-500/30 shrink-0">
+                <Wallet size={22} />
+              </div>
+              <div className="min-w-0 ml-3 flex-1">
+                <span className="font-extrabold text-base tracking-tight text-white block leading-tight truncate">
+                  {currentOrg?.name ?? 'Quản lý quỹ'}
+                </span>
+                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Fund Manager</span>
+              </div>
+              <button
+                onClick={() => setIsSidebarCollapsed(true)}
+                title="Thu gọn"
+                className="p-1.5 text-slate-500 hover:text-white hover:bg-white/10 rounded-lg transition-all shrink-0 ml-1"
+              >
+                <ChevronLeft size={16} />
+              </button>
             </div>
-          </div>
+          )}
 
           {/* Login button for guests */}
           {!currentUser && (
             <button
               onClick={() => setShowLoginModal(true)}
-              className="w-full flex items-center justify-center space-x-2.5 px-4 py-3 mb-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 transition-all text-sm font-semibold shadow-lg shadow-emerald-500/30 group"
+              className={`w-full flex items-center justify-center px-3 py-3 mb-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 transition-all text-sm font-semibold shadow-lg shadow-emerald-500/30 group ${isSidebarCollapsed ? 'md:px-2' : 'space-x-2.5'}`}
             >
               <LogIn size={16} className="group-hover:translate-x-0.5 transition-transform shrink-0" />
-              <span>Đăng nhập</span>
+              {!isSidebarCollapsed && <span>Đăng nhập</span>}
             </button>
           )}
 
@@ -488,16 +511,17 @@ const App: React.FC = () => {
               <button
                 key={item.id}
                 onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative animate-slide-in-left stagger-${Math.min(idx + 1, 6)} ${
+                title={isSidebarCollapsed ? item.label : undefined}
+                className={`w-full flex items-center py-2.5 rounded-xl transition-all duration-200 group relative animate-slide-in-left stagger-${Math.min(idx + 1, 6)} ${isSidebarCollapsed ? 'md:justify-center md:px-2 px-4 space-x-3' : 'space-x-3 px-4'} ${
                   activeTab === item.id
                     ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-400 font-semibold sidebar-item-active'
                     : 'text-slate-400 hover:bg-white/5 hover:text-white'
                 }`}
               >
-                <span className={`transition-colors ${activeTab === item.id ? 'text-emerald-400' : 'text-slate-500 group-hover:text-white'}`}>
+                <span className={`shrink-0 transition-colors ${activeTab === item.id ? 'text-emerald-400' : 'text-slate-500 group-hover:text-white'}`}>
                   {item.icon}
                 </span>
-                <span className="text-sm">{item.label}</span>
+                <span className={`text-sm ${isSidebarCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
               </button>
             ))}
           </nav>
@@ -506,32 +530,37 @@ const App: React.FC = () => {
           <div className="pt-4 border-t border-white/5 space-y-1">
             {currentUser ? (
               <>
-                <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 mb-1">
+                <div className={`flex items-center rounded-xl bg-white/5 mb-1 ${isSidebarCollapsed ? 'md:justify-center md:px-2 md:py-2 gap-3 px-3 py-3' : 'gap-3 px-3 py-3'}`}>
                   <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-sm text-white ${isAdmin ? 'bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md shadow-emerald-500/30' : 'bg-slate-600'}`}>
                     {isAdmin ? 'AD' : currentUser.display_name?.[0]?.toUpperCase() ?? 'U'}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate leading-tight">{currentUser.display_name ?? currentUser.user_name}</p>
-                    <p className="text-[10px] text-slate-500 mt-0.5">{isAdmin ? 'Quản trị viên' : 'Thành viên'}</p>
-                  </div>
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${isAdmin ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-slate-600'}`} />
+                  {!isSidebarCollapsed && (
+                    <>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate leading-tight">{currentUser.display_name ?? currentUser.user_name}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">{isAdmin ? 'Quản trị viên' : 'Thành viên'}</p>
+                      </div>
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${isAdmin ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-slate-600'}`} />
+                    </>
+                  )}
                 </div>
-                {isSaving && (
+                {!isSidebarCollapsed && isSaving && (
                   <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-slate-400">
                     <Loader2 size={11} className="animate-spin" /> Đang lưu...
                   </div>
                 )}
-                {lastSaved && !isSaving && (
+                {!isSidebarCollapsed && lastSaved && !isSaving && (
                   <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-emerald-500">
                     <CheckCircle2 size={11} /> Đã lưu {lastSaved.toLocaleTimeString()}
                   </div>
                 )}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all text-sm group"
+                  title={isSidebarCollapsed ? 'Đăng xuất' : undefined}
+                  className={`w-full flex items-center py-2.5 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all text-sm group ${isSidebarCollapsed ? 'md:justify-center md:px-2 px-4 space-x-3' : 'space-x-3 px-4'}`}
                 >
-                  <LogOut size={16} className="group-hover:translate-x-0.5 transition-transform" />
-                  <span>Đăng xuất</span>
+                  <LogOut size={16} className="group-hover:translate-x-0.5 transition-transform shrink-0" />
+                  <span className={isSidebarCollapsed ? 'md:hidden' : ''}>Đăng xuất</span>
                 </button>
               </>
             ) : null}
@@ -540,7 +569,7 @@ const App: React.FC = () => {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="hidden md:flex glass border-b border-gray-100/80 h-18 items-center justify-between px-8 sticky top-0 z-30 shadow-sm" style={{ height: '72px' }}>
           <div className="flex flex-col justify-center">
             <h2 className="text-lg font-bold text-gray-900 leading-tight">
@@ -602,7 +631,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+        <div className="p-4 md:p-8 overflow-y-auto w-full">
           <div key={activeTab} className="animate-fade-in-up">
             {renderContent()}
           </div>
