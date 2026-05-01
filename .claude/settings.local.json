@@ -29,7 +29,8 @@
       "PowerShell(docker exec manage-money-api-dev grep -A5 \"async findAll\" /app/src/members/members.service.ts)",
       "Bash(curl -s \"http://localhost:3334/api/lien-trung/members?page=1&limit=10\")",
       "Bash(curl -s \"http://localhost:3334/api/lien-trung/transactions?page=1&limit=10\")",
-      "Read(//c//**)"
+      "Read(//c//**)",
+      "Bash(grep -E \"\\(\\\\.\\(tsx|ts|jsx|js\\)$|app\\\\.|index\\\\.|pages|routes|auth\\)\")"
     ]
   }
 }

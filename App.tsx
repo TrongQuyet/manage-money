@@ -90,9 +90,17 @@ const App: React.FC = () => {
     });
   }, []);
 
-  // Khởi động org session — chạy bất kể đã đăng nhập hay chưa
+  // Khởi động org session — yêu cầu đăng nhập và phải thuộc org đó
   const initOrgSession = useCallback(async (slug: string, user: User | null) => {
     setOrgNotFound(false);
+
+    // Chưa đăng nhập → hiện login modal, không load data
+    if (!user) {
+      setIsLoading(false);
+      setShowLoginModal(true);
+      return;
+    }
+
     const org = await api.getOrgBySlug(slug);
     if (!org) {
       setOrgNotFound(true);
@@ -101,23 +109,33 @@ const App: React.FC = () => {
     }
     setCurrentOrg(org);
 
-    // Load data + nếu đã đăng nhập thì lấy role và memberId song song
-    const tasks: Promise<unknown>[] = [
-      loadOrgData(org.slug, !!user),
-      api.getOrgSettings(slug).then(setOrgSettings),
-    ];
-    if (user) {
-      tasks.push(
-        api.getMyOrgRole(slug).then(({ role }) => setOrgRole(role)),
-        api.getMyMember(slug).then((m) => setMyMemberId(m?.id ?? null)),
-      );
+    // Kiểm tra user có thuộc org này không
+    const { role } = await api.getMyOrgRole(slug);
+    if (!role) {
+      // User không thuộc org này → redirect về org của họ
+      const myOrgs = await api.getMyOrgs();
+      if (myOrgs.length > 0) {
+        navigate(`/${myOrgs[0].slug}/dashboard`);
+      } else {
+        setOrgNotFound(true);
+      }
+      setIsLoading(false);
+      return;
     }
+
+    setOrgRole(role);
+
+    const tasks: Promise<unknown>[] = [
+      loadOrgData(org.slug, true),
+      api.getOrgSettings(slug).then(setOrgSettings),
+      api.getMyMember(slug).then((m) => setMyMemberId(m?.id ?? null)),
+    ];
     try {
       await Promise.all(tasks);
     } finally {
       setIsLoading(false);
     }
-  }, [loadOrgData]);
+  }, [loadOrgData, navigate]);
 
   useEffect(() => {
     const init = async () => {
@@ -191,9 +209,9 @@ const App: React.FC = () => {
     setOrgRole(null);
     setMyMemberId(null);
     setState(EMPTY_STATE);
+    setCurrentOrg(null);
     setActiveTab('dashboard');
-    // Reload data ở chế độ public (không seed)
-    if (orgSlug) await loadOrgData(orgSlug, false);
+    setShowLoginModal(true);
   };
 
   // Yêu cầu đăng nhập trước khi thực hiện hành động ghi
@@ -601,7 +619,7 @@ const App: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => { setShowLoginModal(false); setLoginError(''); }}
+                onClick={() => { setShowLoginModal(false); setLoginError(''); if (!currentUser) navigate('/'); }}
                 className="w-full py-2.5 text-gray-400 font-medium hover:text-gray-600 transition-colors text-sm"
               >
                 Hủy bỏ
