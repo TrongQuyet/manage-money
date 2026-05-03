@@ -60,3 +60,19 @@ export interface AppState {
 }
 
 export type OrgSettings = Record<string, string>;
+
+export type EventStatus = 'ACTIVE' | 'CLOSED';
+
+export interface OrgEvent {
+  id: number;
+  title: string;
+  description?: string;
+  location?: string;
+  rules?: string;
+  options: string[];
+  status: EventStatus;
+  endDate?: string;
+  createdAt: string;
+  voteCount: Record<string, number>;
+  myVote?: string;
+}

@@ -1,6 +1,6 @@
 
 import { API_BASE_URL } from '../constants';
-import { Member, Transaction, Category, Organization, User, OrgSettings } from '../types';
+import { Member, Transaction, Category, Organization, User, OrgSettings, OrgEvent } from '../types';
 
 export interface ActivityLog {
   id: number;
@@ -342,4 +342,69 @@ export const updateOrgSetting = async (orgSlug: string, key: string, value: stri
     body: JSON.stringify({ value }),
   });
   return res.ok;
+};
+
+// ─── Events ───────────────────────────────────────────────────────────────────
+
+export const getEvents = async (
+  orgSlug: string,
+  params?: { page?: number; limit?: number; status?: string },
+): Promise<{ data: OrgEvent[]; total: number }> => {
+  const q = new URLSearchParams();
+  if (params?.page) q.set('page', String(params.page));
+  if (params?.limit) q.set('limit', String(params.limit));
+  if (params?.status) q.set('status', params.status);
+  const res = await apiFetch(`/${orgSlug}/events?${q.toString()}`);
+  const raw = await json<{ data: OrgEvent[]; total: number }>(res);
+  return { data: raw?.data ?? [], total: raw?.total ?? 0 };
+};
+
+export const getEvent = async (orgSlug: string, id: number): Promise<OrgEvent | null> => {
+  const res = await apiFetch(`/${orgSlug}/events/${id}`);
+  return json<OrgEvent>(res);
+};
+
+export const createEvent = async (
+  orgSlug: string,
+  data: Omit<OrgEvent, 'id' | 'createdAt' | 'voteCount' | 'myVote' | 'status'>,
+): Promise<OrgEvent | null> => {
+  const res = await apiFetch(`/${orgSlug}/events`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return json<OrgEvent>(res);
+};
+
+export const updateEvent = async (
+  orgSlug: string,
+  id: number,
+  data: Partial<Omit<OrgEvent, 'id' | 'createdAt' | 'voteCount' | 'myVote'>>,
+): Promise<OrgEvent | null> => {
+  const res = await apiFetch(`/${orgSlug}/events/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return json<OrgEvent>(res);
+};
+
+export const deleteEvent = async (orgSlug: string, id: number): Promise<boolean> => {
+  const res = await apiFetch(`/${orgSlug}/events/${id}`, { method: 'DELETE' });
+  return res.status === 204;
+};
+
+export const submitVote = async (
+  orgSlug: string,
+  eventId: number,
+  option: string,
+): Promise<OrgEvent | null> => {
+  const res = await apiFetch(`/${orgSlug}/events/${eventId}/vote`, {
+    method: 'POST',
+    body: JSON.stringify({ option }),
+  });
+  return json<OrgEvent>(res);
+};
+
+export const cancelVote = async (orgSlug: string, eventId: number): Promise<OrgEvent | null> => {
+  const res = await apiFetch(`/${orgSlug}/events/${eventId}/vote`, { method: 'DELETE' });
+  return json<OrgEvent>(res);
 };

@@ -34,7 +34,13 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ADMIN\\\\Herd\\\\manage-money\" -Recurse -Depth 2)",
       "Bash(Select-Object FullName, PSIsContainer)",
       "Bash(Format-Table -AutoSize)",
-      "Bash(grep -E \"\\\\.tsx$\")"
+      "Bash(grep -E \"\\\\.tsx$\")",
+      "Bash(Get-ChildItem -Path src -Recurse -Include *.ts, *.tsx)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ADMIN\\\\Herd\\\\manage-money-api\\\\src\\\\entities\" -Force)",
+      "Bash(Select-Object Name, LastWriteTime)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ADMIN\\\\Herd\\\\manage-money-api\\\\src\\\\common\" -File)",
+      "Bash(Select-Object Name, FullName)"
     ]
   }
 }

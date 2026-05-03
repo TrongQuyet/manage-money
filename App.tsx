@@ -12,6 +12,9 @@ import LuckyWheel from './components/LuckyWheel';
 import ActivityLogs from './components/ActivityLogs';
 import AuditLogs from './components/AuditLogs';
 import ProfilePage from './components/ProfilePage';
+import EventVoting from './components/EventVoting';
+import EventBanner from './components/EventBanner';
+import EventNotificationModal, { shouldShowNotification, markNotificationShown } from './components/EventNotificationModal';
 import * as api from './services/apiService';
 import {
   Menu, X, Wallet, LogOut, Bell, Loader2, CheckCircle2,
@@ -47,6 +50,11 @@ const App: React.FC = () => {
   const [myMemberId, setMyMemberId] = useState<number | null>(null);
   const [txRefreshKey, setTxRefreshKey] = useState(0);
   const [memberRefreshKey, setMemberRefreshKey] = useState(0);
+
+  // Event notification state
+  const [pendingEvents, setPendingEvents] = useState<import('./types').OrgEvent[]>([]);
+  const [showEventBanner, setShowEventBanner] = useState(true);
+  const [showEventNotificationModal, setShowEventNotificationModal] = useState(false);
 
   // Org state
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
@@ -136,6 +144,14 @@ const App: React.FC = () => {
       loadOrgData(org.slug, true),
       api.getOrgSettings(slug).then(setOrgSettings),
       api.getMyMember(slug).then((m) => setMyMemberId(m?.id ?? null)),
+      api.getEvents(slug, { status: 'ACTIVE', limit: 50 }).then(res => {
+        const pending = res.data.filter(e => !e.myVote);
+        setPendingEvents(pending);
+        if (pending.length > 0 && shouldShowNotification()) {
+          setShowEventNotificationModal(true);
+          markNotificationShown();
+        }
+      }),
     ];
     try {
       await Promise.all(tasks);
@@ -419,6 +435,14 @@ const App: React.FC = () => {
         );
       case 'reports':
         return <Reports state={state} />;
+      case 'events':
+        return (
+          <EventVoting
+            orgSlug={currentOrg?.slug ?? ''}
+            isAdmin={isAdmin}
+            onPendingEventsChange={setPendingEvents}
+          />
+        );
       case 'lucky-wheel':
         return <LuckyWheel members={state.members} />;
       case 'settings':
@@ -653,6 +677,13 @@ const App: React.FC = () => {
         </header>
 
         <div className="p-4 md:p-8 overflow-y-auto w-full">
+          {showEventBanner && pendingEvents.length > 0 && activeTab !== 'events' && (
+            <EventBanner
+              pendingEvents={pendingEvents}
+              onNavigate={() => { setActiveTab('events'); setShowEventBanner(false); }}
+              onDismiss={() => setShowEventBanner(false)}
+            />
+          )}
           <div key={activeTab} className="animate-fade-in-up">
             {renderContent()}
           </div>
@@ -716,6 +747,14 @@ const App: React.FC = () => {
         <div
           className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {showEventNotificationModal && (
+        <EventNotificationModal
+          pendingEvents={pendingEvents}
+          onNavigate={() => { setShowEventNotificationModal(false); setActiveTab('events'); }}
+          onClose={() => setShowEventNotificationModal(false)}
         />
       )}
     </div>
