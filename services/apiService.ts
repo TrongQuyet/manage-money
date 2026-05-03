@@ -85,6 +85,16 @@ export const getMe = async (): Promise<User | null> => {
   return json<User>(res);
 };
 
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<{ ok: boolean; message?: string }> => {
+  const res = await apiFetch('/auth/change-password', {
+    method: 'PUT',
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  if (res.ok) return { ok: true };
+  const data = await res.json().catch(() => ({}));
+  return { ok: false, message: (data as { message?: string }).message };
+};
+
 // ─── Organizations ───────────────────────────────────────────────────────────
 
 export const getMyOrgs = async (): Promise<Organization[]> => {

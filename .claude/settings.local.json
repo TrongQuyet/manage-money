@@ -30,7 +30,11 @@
       "Bash(curl -s \"http://localhost:3334/api/lien-trung/members?page=1&limit=10\")",
       "Bash(curl -s \"http://localhost:3334/api/lien-trung/transactions?page=1&limit=10\")",
       "Read(//c//**)",
-      "Bash(grep -E \"\\(\\\\.\\(tsx|ts|jsx|js\\)$|app\\\\.|index\\\\.|pages|routes|auth\\)\")"
+      "Bash(grep -E \"\\(\\\\.\\(tsx|ts|jsx|js\\)$|app\\\\.|index\\\\.|pages|routes|auth\\)\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ADMIN\\\\Herd\\\\manage-money\" -Recurse -Depth 2)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(grep -E \"\\\\.tsx$\")"
     ]
   }
 }

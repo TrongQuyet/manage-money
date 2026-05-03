@@ -11,10 +11,11 @@ import Reports from './components/Reports';
 import LuckyWheel from './components/LuckyWheel';
 import ActivityLogs from './components/ActivityLogs';
 import AuditLogs from './components/AuditLogs';
+import ProfilePage from './components/ProfilePage';
 import * as api from './services/apiService';
 import {
   Menu, X, Wallet, LogOut, Bell, Loader2, CheckCircle2,
-  LogIn, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight
+  LogIn, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight, UserCircle
 } from 'lucide-react';
 
 const EMPTY_STATE: AppState = {
@@ -434,6 +435,10 @@ const App: React.FC = () => {
         return isAdmin ? <ActivityLogs orgSlug={currentOrg?.slug ?? ''} /> : null;
       case 'audit-logs':
         return isAdmin ? <AuditLogs orgSlug={currentOrg?.slug ?? ''} /> : null;
+      case 'profile':
+        return currentUser ? (
+          <ProfilePage orgSlug={currentOrg?.slug ?? ''} currentUser={currentUser} myMemberId={myMemberId} />
+        ) : null;
       default:
         return null;
     }
@@ -555,6 +560,14 @@ const App: React.FC = () => {
                   </div>
                 )}
                 <button
+                  onClick={() => { setActiveTab('profile'); setIsSidebarOpen(false); }}
+                  title={isSidebarCollapsed ? 'Hồ sơ cá nhân' : undefined}
+                  className={`w-full flex items-center py-2.5 rounded-xl transition-all text-sm group ${isSidebarCollapsed ? 'md:justify-center md:px-2 px-4 space-x-3' : 'space-x-3 px-4'} ${activeTab === 'profile' ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-400 font-semibold' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                >
+                  <UserCircle size={16} className="shrink-0" />
+                  <span className={isSidebarCollapsed ? 'md:hidden' : ''}>Hồ sơ cá nhân</span>
+                </button>
+                <button
                   onClick={handleLogout}
                   title={isSidebarCollapsed ? 'Đăng xuất' : undefined}
                   className={`w-full flex items-center py-2.5 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all text-sm group ${isSidebarCollapsed ? 'md:justify-center md:px-2 px-4 space-x-3' : 'space-x-3 px-4'}`}
@@ -573,7 +586,7 @@ const App: React.FC = () => {
         <header className="hidden md:flex glass border-b border-gray-100/80 h-18 items-center justify-between px-8 sticky top-0 z-30 shadow-sm" style={{ height: '72px' }}>
           <div className="flex flex-col justify-center">
             <h2 className="text-lg font-bold text-gray-900 leading-tight">
-              {NAVIGATION_ITEMS.find(n => n.id === activeTab)?.label}
+              {activeTab === 'profile' ? 'Hồ sơ cá nhân' : NAVIGATION_ITEMS.find(n => n.id === activeTab)?.label}
             </h2>
             <div className="flex items-center gap-2 mt-0.5">
               {isAdmin ? (
@@ -617,7 +630,15 @@ const App: React.FC = () => {
                 </div>
               </button>
               {showUserDropdown && currentUser && (
-                <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                  <button
+                    onClick={() => { setShowUserDropdown(false); setActiveTab('profile'); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <UserCircle size={15} className="text-gray-400" />
+                    Hồ sơ cá nhân
+                  </button>
+                  <div className="border-t border-gray-100 my-1" />
                   <button
                     onClick={() => { setShowUserDropdown(false); handleLogout(); }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
