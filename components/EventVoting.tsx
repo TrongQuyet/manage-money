@@ -229,7 +229,7 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
                 {event.eventDate && (
                   <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-1">
                     <Calendar size={11} />
-                    <span>{new Date(event.eventDate).toLocaleDateString('vi-VN')}</span>
+                    <span>{new Date(event.eventDate).toLocaleDateString('vi-VN')}{event.eventTime ? ` · ${event.eventTime}` : ''}</span>
                   </div>
                 )}
 
@@ -313,12 +313,17 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
                 </div>
               )}
 
-              {selectedEvent.eventDate && (
+              {(selectedEvent.eventDate || selectedEvent.eventTime) && (
                 <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
                   <div className="p-2 bg-white rounded-lg text-gray-400 border border-gray-100 shadow-sm shrink-0"><Calendar size={14} /></div>
                   <div>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Ngày diễn ra</p>
-                    <p className="text-gray-700 text-sm font-semibold">{new Date(selectedEvent.eventDate).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    {selectedEvent.eventDate && (
+                      <p className="text-gray-700 text-sm font-semibold">{new Date(selectedEvent.eventDate).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    )}
+                    {selectedEvent.eventTime && (
+                      <p className="flex items-center gap-1 text-gray-500 text-sm mt-0.5"><Clock size={12} />{selectedEvent.eventTime}</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -389,6 +394,36 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
                   <p className="text-xs text-gray-400 mt-3 text-center">Nhấn lại vào lựa chọn đã chọn để hủy bình chọn.</p>
                 )}
               </div>
+
+              {/* Voter list */}
+              {selectedEvent.voters && selectedEvent.voters.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                    Danh sách bình chọn · {selectedEvent.voters.length} người
+                  </p>
+                  <div className="space-y-1.5">
+                    {selectedEvent.options.map(option => {
+                      const group = selectedEvent.voters!.filter(v => v.option === option);
+                      if (group.length === 0) return null;
+                      return (
+                        <div key={option} className="p-3 bg-slate-50 rounded-xl">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{option} · {group.length} người</p>
+                          <div className="flex flex-wrap gap-2">
+                            {group.map(voter => (
+                              <div key={voter.userId} className="flex items-center gap-1.5 bg-white border border-gray-100 rounded-lg px-2.5 py-1.5 shadow-sm">
+                                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+                                  {voter.name.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="text-xs font-medium text-gray-700">{voter.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="px-7 pb-7 shrink-0">

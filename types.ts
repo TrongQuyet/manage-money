@@ -63,6 +63,12 @@ export type OrgSettings = Record<string, string>;
 
 export type EventStatus = 'ACTIVE' | 'CLOSED';
 
+export interface EventVoter {
+  userId: number;
+  name: string;
+  option: string;
+}
+
 export interface OrgEvent {
   id: number;
   title: string;
@@ -77,4 +83,5 @@ export interface OrgEvent {
   createdAt: string;
   voteCount: Record<string, number>;
   myVote?: string;
+  voters?: EventVoter[];
 }
