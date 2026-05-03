@@ -71,6 +71,8 @@ export interface OrgEvent {
   rules?: string;
   options: string[];
   status: EventStatus;
+  eventDate?: string;
+  eventTime?: string;
   endDate?: string;
   createdAt: string;
   voteCount: Record<string, number>;

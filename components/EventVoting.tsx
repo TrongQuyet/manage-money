@@ -22,6 +22,8 @@ const emptyForm = {
   location: '',
   rules: '',
   options: ['', ''],
+  eventDate: '',
+  eventTime: '',
   endDate: '',
 };
 
@@ -73,6 +75,8 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
       location: event.location ?? '',
       rules: event.rules ?? '',
       options: [...event.options],
+      eventDate: event.eventDate ?? '',
+      eventTime: event.eventTime ?? '',
       endDate: event.endDate ?? '',
     });
     setShowFormModal(true);
@@ -83,7 +87,13 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
     const cleanedOptions = form.options.map(o => o.trim()).filter(Boolean);
     if (cleanedOptions.length < 2) return;
     setSaving(true);
-    const payload = { ...form, options: cleanedOptions };
+    const payload = {
+      ...form,
+      options: cleanedOptions,
+      eventDate: form.eventDate || undefined,
+      eventTime: form.eventTime || undefined,
+      endDate: form.endDate || undefined,
+    };
     if (editingEvent) {
       const updated = await api.updateEvent(orgSlug, editingEvent.id, payload);
       if (updated) {
@@ -213,6 +223,13 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
                   </div>
                 )}
 
+                {event.eventDate && (
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-1">
+                    <Calendar size={11} />
+                    <span>{new Date(event.eventDate).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
                   <Users size={11} />
                   <span>{count} lượt bình chọn</span>
@@ -293,6 +310,15 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
                 </div>
               )}
 
+              {selectedEvent.eventDate && (
+                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                  <div className="p-2 bg-white rounded-lg text-gray-400 border border-gray-100 shadow-sm shrink-0"><Calendar size={14} /></div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Ngày diễn ra</p>
+                    <p className="text-gray-700 text-sm font-semibold">{new Date(selectedEvent.eventDate).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  </div>
+                </div>
+              )}
               {selectedEvent.endDate && (
                 <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
                   <div className="p-2 bg-white rounded-lg text-gray-400 border border-gray-100 shadow-sm shrink-0"><Calendar size={14} /></div>
@@ -398,6 +424,16 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Hạn bình chọn</label>
                   <input type="date" className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Ngày diễn ra</label>
+                  <input type="date" className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm" value={form.eventDate} onChange={e => setForm({ ...form, eventDate: e.target.value })} />
+                </div>
+                <div>
+                  <label htmlFor="event-time" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Giờ diễn ra</label>
+                  <input id="event-time" type="time" step="60" className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm" value={form.eventTime} onChange={e => setForm({ ...form, eventTime: e.target.value })} />
                 </div>
               </div>
               <div>
