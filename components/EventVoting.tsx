@@ -99,13 +99,16 @@ const EventVoting: React.FC<Props> = ({ orgSlug, isAdmin, onPendingEventsChange 
       if (updated) {
         setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
         if (selectedEvent?.id === updated.id) setSelectedEvent(updated);
+        setShowFormModal(false);
       }
     } else {
       const created = await api.createEvent(orgSlug, payload);
-      if (created) fetchEvents();
+      if (created) {
+        fetchEvents();
+        setShowFormModal(false);
+      }
     }
     setSaving(false);
-    setShowFormModal(false);
   };
 
   const handleCloseEvent = async (event: OrgEvent) => {
