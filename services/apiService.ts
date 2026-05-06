@@ -1,6 +1,6 @@
 
 import { API_BASE_URL } from '../constants';
-import { Member, Transaction, Category, Organization, User, OrgSettings, OrgEvent } from '../types';
+import { Member, Transaction, Category, Organization, User, OrgSettings, OrgEvent, LoanRequest, LoanVote, TransferRequest } from '../types';
 
 export interface ActivityLog {
   id: number;
@@ -433,4 +433,85 @@ export const submitVote = async (
 export const cancelVote = async (orgSlug: string, eventId: number): Promise<OrgEvent | null> => {
   const res = await apiFetch(`/${orgSlug}/events/${eventId}/vote`, { method: 'DELETE' });
   return json<OrgEvent>(res);
+};
+
+// ─── Loan Requests ────────────────────────────────────────────────────────────
+
+export interface LoanRequestDetail extends LoanRequest {
+  votes: (LoanVote & { member?: Member })[];
+  history: import('./apiService').ActivityLog[];
+}
+
+export const getLoanRequests = async (
+  orgSlug: string,
+  params?: { page?: number; limit?: number },
+): Promise<PaginatedResponse<LoanRequest>> => {
+  const q = new URLSearchParams();
+  if (params?.page) q.set('page', String(params.page));
+  if (params?.limit) q.set('limit', String(params.limit));
+  const res = await apiFetch(`/${orgSlug}/loan-requests?${q.toString()}`);
+  const raw = await json<PaginatedResponse<LoanRequest>>(res);
+  return { data: raw?.data ?? [], total: raw?.total ?? 0 };
+};
+
+export const getLoanRequest = async (orgSlug: string, id: number): Promise<LoanRequestDetail | null> => {
+  const res = await apiFetch(`/${orgSlug}/loan-requests/${id}`);
+  return json<LoanRequestDetail>(res);
+};
+
+export const createLoanRequest = async (
+  orgSlug: string,
+  data: { amount: number; reason: string },
+): Promise<LoanRequest | null> => {
+  const res = await apiFetch(`/${orgSlug}/loan-requests`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return json<LoanRequest>(res);
+};
+
+export const adminReviewLoanRequest = async (
+  orgSlug: string,
+  id: number,
+  data: { approve: boolean; note?: string },
+): Promise<LoanRequest | null> => {
+  const res = await apiFetch(`/${orgSlug}/loan-requests/${id}/admin-review`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return json<LoanRequest>(res);
+};
+
+export const voteLoanRequest = async (
+  orgSlug: string,
+  id: number,
+  data: { approve: boolean; note?: string },
+): Promise<{ message: string } | null> => {
+  const res = await apiFetch(`/${orgSlug}/loan-requests/${id}/vote`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return json<{ message: string }>(res);
+};
+
+export const getTransferRequests = async (
+  orgSlug: string,
+  params?: { page?: number; limit?: number },
+): Promise<PaginatedResponse<TransferRequest>> => {
+  const q = new URLSearchParams();
+  if (params?.page) q.set('page', String(params.page));
+  if (params?.limit) q.set('limit', String(params.limit));
+  const res = await apiFetch(`/${orgSlug}/loan-requests/transfer-requests?${q.toString()}`);
+  const raw = await json<PaginatedResponse<TransferRequest>>(res);
+  return { data: raw?.data ?? [], total: raw?.total ?? 0 };
+};
+
+export const completeTransferRequest = async (
+  orgSlug: string,
+  transferId: number,
+): Promise<TransferRequest | null> => {
+  const res = await apiFetch(`/${orgSlug}/loan-requests/transfer-requests/${transferId}/complete`, {
+    method: 'POST',
+  });
+  return json<TransferRequest>(res);
 };

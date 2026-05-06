@@ -63,6 +63,52 @@ export interface AppState {
 
 export type OrgSettings = Record<string, string>;
 
+export type LoanRequestStatus =
+  | 'PENDING_ADMIN'
+  | 'PENDING_VOTES'
+  | 'APPROVED'
+  | 'REJECTED_BY_ADMIN'
+  | 'REJECTED_BY_VOTE';
+
+export interface LoanRequest {
+  id: number;
+  memberId: number;
+  organizationId: number;
+  amount: number;
+  reason: string;
+  status: LoanRequestStatus;
+  adminNote: string | null;
+  reviewedBy: number | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  member?: Member;
+}
+
+export interface LoanVote {
+  id: number;
+  loanRequestId: number;
+  memberId: number;
+  approve: boolean;
+  note: string | null;
+  createdAt: string;
+  member?: Member;
+}
+
+export type TransferRequestStatus = 'PENDING' | 'COMPLETED';
+
+export interface TransferRequest {
+  id: number;
+  loanRequestId: number;
+  organizationId: number;
+  amount: number;
+  status: TransferRequestStatus;
+  completedBy: number | null;
+  completedAt: string | null;
+  createdAt: string;
+  loanRequest?: LoanRequest;
+}
+
 export type EventStatus = 'ACTIVE' | 'CLOSED';
 
 export interface EventVoter {

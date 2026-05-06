@@ -13,6 +13,7 @@ import ActivityLogs from './components/ActivityLogs';
 import AuditLogs from './components/AuditLogs';
 import ProfilePage from './components/ProfilePage';
 import EventVoting from './components/EventVoting';
+import LoanRequests from './components/LoanRequests';
 import EventBanner from './components/EventBanner';
 import EventNotificationModal, { shouldShowNotification, markNotificationShown } from './components/EventNotificationModal';
 import * as api from './services/apiService';
@@ -441,6 +442,14 @@ const App: React.FC = () => {
             orgSlug={currentOrg?.slug ?? ''}
             isAdmin={isAdmin}
             onPendingEventsChange={setPendingEvents}
+          />
+        );
+      case 'loan-requests':
+        return (
+          <LoanRequests
+            orgSlug={currentOrg?.slug ?? ''}
+            isAdmin={isAdmin}
+            myMemberId={myMemberId}
           />
         );
       case 'lucky-wheel':
