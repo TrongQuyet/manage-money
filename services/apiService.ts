@@ -29,11 +29,15 @@ export interface AuditLog {
 
 let isRefreshing = false;
 
-const apiFetch = async (path: string, options: RequestInit = {}): Promise<Response> => {
+const apiFetch = async (path: string, options: RequestInit = {}, skipContentType = false): Promise<Response> => {
+  const headers = skipContentType
+    ? { ...(options.headers as Record<string, string>) }
+    : { 'Content-Type': 'application/json', ...(options.headers as Record<string, string>) };
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers,
   });
 
   if (res.status === 401 && !isRefreshing) {
@@ -45,7 +49,7 @@ const apiFetch = async (path: string, options: RequestInit = {}): Promise<Respon
       });
       if (refreshRes.ok) {
         isRefreshing = false;
-        return apiFetch(path, options);
+        return apiFetch(path, options, skipContentType);
       }
     } catch {
       // refresh failed
@@ -162,10 +166,10 @@ export const createMember = async (orgSlug: string, data: Omit<Member, 'id' | 'j
 };
 
 export const updateMember = async (orgSlug: string, id: number, data: Partial<Member>): Promise<Member | null> => {
-  const { name, email, phone, address, role, note } = data;
+  const { name, email, phone, address, role, note, avatarUrl, bankQrUrl } = data;
   const res = await apiFetch(`/${orgSlug}/members/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ name, email, phone, address, role, note }),
+    body: JSON.stringify({ name, email, phone, address, role, note, avatarUrl, bankQrUrl }),
   });
   return json<Member>(res);
 };
@@ -182,13 +186,35 @@ export const getMyMember = async (orgSlug: string): Promise<Member | null> => {
 
 export const updateOwnMember = async (
   orgSlug: string,
-  data: Pick<Member, 'name' | 'email' | 'phone' | 'address'>,
+  data: Pick<Member, 'name' | 'email' | 'phone' | 'address'> & { avatarUrl?: string; bankQrUrl?: string },
 ): Promise<Member | null> => {
   const res = await apiFetch(`/${orgSlug}/members/self`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
   return json<Member>(res);
+};
+
+export const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+export const updateMemberAccount = async (
+  orgSlug: string,
+  memberId: number,
+  data: { user_name?: string; new_password?: string },
+): Promise<{ ok: boolean; message?: string }> => {
+  const res = await apiFetch(`/${orgSlug}/members/${memberId}/account`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  if (res.ok) return { ok: true };
+  const body = await res.json().catch(() => ({}));
+  return { ok: false, message: (body as { message?: string }).message };
 };
 
 // ─── Transactions ────────────────────────────────────────────────────────────

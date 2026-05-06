@@ -15,6 +15,8 @@ export interface Member {
   role: MemberRole;
   note: string;
   joinedAt: string;
+  avatarUrl?: string | null;
+  bankQrUrl?: string | null;
 }
 
 export type TransactionType = 'INCOME' | 'EXPENSE';

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Member, MemberRole } from '../types';
 import {
   Trash2, Edit2, Search, UserPlus, ShieldAlert,
-  AlertTriangle, Phone, MapPin, Mail, Calendar, StickyNote, Eye, X
+  AlertTriangle, Phone, MapPin, Mail, Calendar, StickyNote, Eye, X, Camera, QrCode, KeyRound, Loader2
 } from 'lucide-react';
 import Pagination from './Pagination';
 import * as api from '../services/apiService';
@@ -21,6 +21,7 @@ interface Props {
   onUpdateOwnMember?: (data: Pick<Member, 'id' | 'name' | 'email' | 'phone' | 'address'>) => void;
 }
 
+
 const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, onUpdateMember, onDeleteMember, isAdmin, myMemberId, onUpdateOwnMember }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
@@ -31,7 +32,13 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
   const [members, setMembers] = useState<Member[]>([]);
   const [total, setTotal] = useState(0);
   const [isFetching, setIsFetching] = useState(false);
+  const [uploadingFor, setUploadingFor] = useState<{ id: number; field: 'avatar' | 'bankQr' } | null>(null);
+  const [accountForm, setAccountForm] = useState({ user_name: '', new_password: '' });
+  const [accountSaving, setAccountSaving] = useState(false);
+  const [accountMsg, setAccountMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const bankQrInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!orgSlug) return;
@@ -40,6 +47,11 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
       .then(res => { setMembers(res.data); setTotal(res.total); })
       .finally(() => setIsFetching(false));
   }, [orgSlug, currentPage, searchTerm, refreshKey]);
+
+  useEffect(() => {
+    setAccountForm({ user_name: '', new_password: '' });
+    setAccountMsg(null);
+  }, [editingMember?.id]);
 
   const [newMember, setNewMember] = useState({
     name: '',
@@ -70,10 +82,53 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
     setEditingMember(null);
   };
 
+  const handleAccountSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMember) return;
+    const data: { user_name?: string; new_password?: string } = {};
+    if (accountForm.user_name.trim()) data.user_name = accountForm.user_name.trim();
+    if (accountForm.new_password.trim()) data.new_password = accountForm.new_password.trim();
+    if (!data.user_name && !data.new_password) return;
+    setAccountSaving(true);
+    setAccountMsg(null);
+    const result = await api.updateMemberAccount(orgSlug, editingMember.id, data);
+    if (result.ok) {
+      setAccountMsg({ type: 'success', text: 'Cập nhật tài khoản thành công.' });
+      setAccountForm({ user_name: '', new_password: '' });
+    } else {
+      setAccountMsg({ type: 'error', text: result.message ?? 'Cập nhật thất bại.' });
+    }
+    setAccountSaving(false);
+  };
+
   const confirmDelete = () => {
     if (deletingMemberId) {
       onDeleteMember(deletingMemberId);
       setDeletingMemberId(null);
+    }
+  };
+
+  const handleImageUpload = async (file: File, memberId: number, field: 'avatar' | 'bankQr') => {
+    const isSelf = memberId === myMemberId;
+    setUploadingFor({ id: memberId, field });
+    try {
+      const base64 = await api.fileToBase64(file);
+      const apiField = field === 'avatar' ? 'avatarUrl' : 'bankQrUrl';
+      let updated: Member | null = null;
+      if (isSelf && !isAdmin) {
+        updated = await api.updateOwnMember(orgSlug, { ...members.find(m => m.id === memberId)!, [apiField]: base64 });
+      } else {
+        updated = await api.updateMember(orgSlug, memberId, { [apiField]: base64 });
+      }
+      if (updated) {
+        setMembers(prev => prev.map(m => m.id === memberId ? { ...m, ...updated } : m));
+        if (editingMember?.id === memberId) setEditingMember(prev => prev ? { ...prev, ...updated } : prev);
+        if (selectedMember?.id === memberId) setSelectedMember(prev => prev ? { ...prev, ...updated } : prev);
+      } else {
+        alert('Tải ảnh thất bại. Vui lòng thử lại.');
+      }
+    } finally {
+      setUploadingFor(null);
     }
   };
 
@@ -157,8 +212,14 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
                 >
                   <td className="px-6 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
-                        {member.name ? member.name.charAt(0) : '?'}
+                      <div className="h-9 w-9 rounded-xl shrink-0 shadow-sm overflow-hidden">
+                        {member.avatarUrl ? (
+                          <img src={member.avatarUrl ?? ''} alt={member.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="h-full w-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-sm">
+                            {member.name ? member.name.charAt(0) : '?'}
+                          </div>
+                        )}
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors leading-tight">{member.name}</p>
@@ -215,8 +276,14 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
                 <X size={18} />
               </button>
               <div className="flex items-center gap-5">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-2xl font-black shadow-lg shadow-emerald-500/30">
-                  {selectedMember.name.charAt(0)}
+                <div className="w-16 h-16 rounded-2xl shadow-lg shadow-emerald-500/30 overflow-hidden shrink-0">
+                  {selectedMember.avatarUrl ? (
+                    <img src={selectedMember.avatarUrl ?? ''} alt={selectedMember.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-2xl font-black">
+                      {selectedMember.name.charAt(0)}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">{selectedMember.name}</h3>
@@ -246,6 +313,12 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
                   <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1.5 mb-1"><StickyNote size={14} />Ghi chú</p>
                   <p className="text-sm text-amber-800 italic">"{selectedMember.note}"</p>
+                </div>
+              )}
+              {selectedMember.bankQrUrl && (
+                <div className="p-3 bg-slate-50 rounded-xl">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mb-2"><QrCode size={14} />QR Ngân hàng</p>
+                  <img src={selectedMember.bankQrUrl ?? ''} alt="QR ngân hàng" className="w-full max-w-[200px] mx-auto rounded-lg" />
                 </div>
               )}
               <button
@@ -318,6 +391,47 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
               <button onClick={() => setEditingMember(null)} className="p-2 hover:bg-white/10 rounded-xl text-indigo-300"><X size={18}/></button>
             </div>
             <form onSubmit={handleUpdateSubmit} className="p-7 grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Upload avatar + bank QR */}
+              <div className="md:col-span-2 flex gap-4 items-start">
+                {/* Avatar */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden shadow-sm bg-gradient-to-br from-emerald-400 to-teal-500">
+                    {editingMember.avatarUrl ? (
+                      <img src={editingMember.avatarUrl ?? ''} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white text-2xl font-black">{editingMember.name.charAt(0)}</div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={uploadingFor?.field === 'avatar' && uploadingFor.id === editingMember.id}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
+                  >
+                    <Camera size={12} />{uploadingFor?.field === 'avatar' && uploadingFor.id === editingMember.id ? 'Đang tải...' : 'Đổi ảnh'}
+                  </button>
+                  <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { handleImageUpload(f, editingMember.id, 'avatar'); } e.target.value = ''; }} />
+                </div>
+                {/* Bank QR */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden shadow-sm bg-slate-100 flex items-center justify-center">
+                    {editingMember.bankQrUrl ? (
+                      <img src={editingMember.bankQrUrl ?? ''} alt="QR" className="w-full h-full object-cover" />
+                    ) : (
+                      <QrCode size={28} className="text-slate-400" />
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => bankQrInputRef.current?.click()}
+                    disabled={uploadingFor?.field === 'bankQr' && uploadingFor.id === editingMember.id}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
+                  >
+                    <QrCode size={12} />{uploadingFor?.field === 'bankQr' && uploadingFor.id === editingMember.id ? 'Đang tải...' : 'Đổi QR'}
+                  </button>
+                  <input ref={bankQrInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { handleImageUpload(f, editingMember.id, 'bankQr'); } e.target.value = ''; }} />
+                </div>
+              </div>
               <div className="md:col-span-2">
                 <label htmlFor="edit-name" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Họ tên *</label>
                 <input id="edit-name" required type="text" className={inputClsBlue} value={editingMember.name} onChange={(e) => setEditingMember({...editingMember, name: e.target.value})}/>
@@ -347,6 +461,55 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
                 <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200 text-sm active:scale-95">Lưu thay đổi</button>
               </div>
             </form>
+
+            {/* Admin: đổi tài khoản member */}
+            {isAdmin && (
+              <div className="px-7 pb-7">
+                <div className="border-t border-gray-100 pt-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <KeyRound size={14} className="text-amber-500" />
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Tài khoản đăng nhập</p>
+                  </div>
+                  <form onSubmit={handleAccountSubmit} className="space-y-2.5">
+                    <div>
+                      <label htmlFor="acc-username" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Tên đăng nhập mới</label>
+                      <input
+                        id="acc-username"
+                        type="text"
+                        className={inputClsBlue}
+                        placeholder="Để trống nếu không đổi"
+                        value={accountForm.user_name}
+                        onChange={e => setAccountForm(p => ({ ...p, user_name: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="acc-password" className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Mật khẩu mới</label>
+                      <input
+                        id="acc-password"
+                        type="password"
+                        className={inputClsBlue}
+                        placeholder="Để trống nếu không đổi"
+                        value={accountForm.new_password}
+                        onChange={e => setAccountForm(p => ({ ...p, new_password: e.target.value }))}
+                      />
+                    </div>
+                    {accountMsg && (
+                      <p className={`text-xs px-2 py-1.5 rounded-lg ${accountMsg.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
+                        {accountMsg.text}
+                      </p>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={accountSaving || (!accountForm.user_name.trim() && !accountForm.new_password.trim())}
+                      className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-40 active:scale-95"
+                    >
+                      {accountSaving ? <Loader2 size={12} className="animate-spin" /> : <KeyRound size={12} />}
+                      Cập nhật tài khoản
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
