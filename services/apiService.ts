@@ -461,7 +461,7 @@ export const getLoanRequest = async (orgSlug: string, id: number): Promise<LoanR
 
 export const createLoanRequest = async (
   orgSlug: string,
-  data: { amount: number; reason: string },
+  data: { amount: number; reason: string; repaymentDate: string },
 ): Promise<LoanRequest | null> => {
   const res = await apiFetch(`/${orgSlug}/loan-requests`, {
     method: 'POST',

@@ -38,6 +38,7 @@ const TransactionManagement: React.FC<Props> = ({ orgSlug, members, refreshKey, 
   const [newTx, setNewTx] = useState({
     type: 'INCOME' as TransactionType,
     amount: 0,
+    amountDisplay: '',
     description: '',
     category: (availableCategories ?? CATEGORIES).INCOME[0],
     recipient: '',
@@ -60,6 +61,7 @@ const TransactionManagement: React.FC<Props> = ({ orgSlug, members, refreshKey, 
     setNewTx({
       ...newTx,
       amount: 0,
+      amountDisplay: '',
       description: '',
       recipient: '',
       date: new Date().toISOString().split('T')[0]
@@ -275,7 +277,7 @@ const TransactionManagement: React.FC<Props> = ({ orgSlug, members, refreshKey, 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Số tiền (VND)</label>
-                  <input required type="number" className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none font-semibold text-sm transition-all" value={newTx.amount} onChange={(e) => setNewTx({...newTx, amount: Number(e.target.value)})}/>
+                  <input required type="text" inputMode="numeric" className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none font-semibold text-sm transition-all" value={newTx.amountDisplay} onChange={(e) => { const raw = e.target.value.replaceAll(/\D/g, ''); const num = raw ? Number(raw) : 0; setNewTx({...newTx, amount: num, amountDisplay: num ? new Intl.NumberFormat('vi-VN').format(num) : ''}); }}/>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Ngày</label>
@@ -331,7 +333,7 @@ const TransactionManagement: React.FC<Props> = ({ orgSlug, members, refreshKey, 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Số tiền (VND)</label>
-                  <input required type="number" className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-semibold text-sm transition-all" value={editingTx.amount} onChange={(e) => setEditingTx({...editingTx, amount: Number(e.target.value)})}/>
+                  <input required type="text" inputMode="numeric" className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-semibold text-sm transition-all" value={new Intl.NumberFormat('vi-VN').format(editingTx.amount)} onChange={(e) => { const raw = e.target.value.replaceAll(/\D/g, ''); setEditingTx({...editingTx, amount: raw ? Number(raw) : 0}); }}/>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Ngày</label>

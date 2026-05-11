@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { AppState, Category, OrgSettings } from '../types';
 import * as api from '../services/apiService';
-import { Tag, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Image, Save, Layout } from 'lucide-react';
+import { Tag, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Image, Save, Layout, Banknote } from 'lucide-react';
 
 interface Props {
   binId: string;       // orgId
@@ -26,6 +26,30 @@ const Settings: React.FC<Props> = ({ binId: orgId, state, orgSettings, onSetting
   const [groupBadge, setGroupBadge] = useState(orgSettings.group_badge ?? '');
   const [sinceYear, setSinceYear] = useState(orgSettings.since_year ?? '');
   const [isSavingGroup, setIsSavingGroup] = useState(false);
+
+  const [loanMaxAmountDisplay, setLoanMaxAmountDisplay] = useState(() => {
+    const v = orgSettings.loan_max_amount;
+    return v ? new Intl.NumberFormat('vi-VN').format(Number(v)) : '3.000.000';
+  });
+  const [loanMaxDays, setLoanMaxDays] = useState(orgSettings.loan_max_days ?? '90');
+  const [loanFeePercent, setLoanFeePercent] = useState(orgSettings.loan_fee_percent ?? '2');
+  const [isSavingLoan, setIsSavingLoan] = useState(false);
+
+  const handleSaveLoanSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orgId) return;
+    setIsSavingLoan(true);
+    const rawAmount = loanMaxAmountDisplay.replaceAll(/\D/g, '') || '3000000';
+    await Promise.all([
+      api.updateOrgSetting(orgId, 'loan_max_amount', rawAmount),
+      api.updateOrgSetting(orgId, 'loan_max_days', loanMaxDays),
+      api.updateOrgSetting(orgId, 'loan_fee_percent', loanFeePercent),
+    ]);
+    onSettingChange('loan_max_amount', rawAmount);
+    onSettingChange('loan_max_days', loanMaxDays);
+    onSettingChange('loan_fee_percent', loanFeePercent);
+    setIsSavingLoan(false);
+  };
 
   const handleSaveGroupInfo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -272,7 +296,80 @@ const Settings: React.FC<Props> = ({ binId: orgId, state, orgSettings, onSetting
       </div>
       </div>
 
-      {/* Right column: categories */}
+      {/* Right column: loan settings + categories */}
+      <div className="space-y-5">
+
+      {/* Loan Settings */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-slate-900 to-slate-800">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/15 p-2.5 rounded-xl border border-white/20">
+              <Banknote size={20} className="text-yellow-300" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Cài đặt vay quỹ</h3>
+              <p className="text-slate-400 text-xs mt-0.5">Giới hạn vay, thời hạn và phí vay</p>
+            </div>
+          </div>
+        </div>
+        <form onSubmit={handleSaveLoanSettings} className="p-7 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="loan-max-amount" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Số tiền tối đa (₫)</label>
+              <input
+                id="loan-max-amount"
+                type="text"
+                inputMode="numeric"
+                value={loanMaxAmountDisplay}
+                onChange={e => {
+                  const raw = e.target.value.replaceAll(/\D/g, '');
+                  const num = raw ? Number(raw) : 0;
+                  setLoanMaxAmountDisplay(num ? new Intl.NumberFormat('vi-VN').format(num) : '');
+                }}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all"
+                placeholder="3.000.000"
+              />
+            </div>
+            <div>
+              <label htmlFor="loan-max-days" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Số ngày tối đa</label>
+              <input
+                id="loan-max-days"
+                type="number"
+                min={1}
+                max={365}
+                value={loanMaxDays}
+                onChange={e => setLoanMaxDays(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all"
+                placeholder="90"
+              />
+            </div>
+            <div>
+              <label htmlFor="loan-fee-percent" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Phí vay (%)</label>
+              <input
+                id="loan-fee-percent"
+                type="number"
+                min={0}
+                max={100}
+                step={0.1}
+                value={loanFeePercent}
+                onChange={e => setLoanFeePercent(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all"
+                placeholder="2"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={isSavingLoan}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-all shadow-lg shadow-yellow-200 active:scale-95"
+          >
+            <Save size={15} />
+            {isSavingLoan ? 'Đang lưu...' : 'Lưu cài đặt vay'}
+          </button>
+        </form>
+      </div>
+
+      {/* Categories */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Header */}
         <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-slate-900 to-slate-800">
@@ -340,6 +437,8 @@ const Settings: React.FC<Props> = ({ binId: orgId, state, orgSettings, onSetting
             </div>
           </div>
         </div>
+      </div>
+
       </div>
     </div>
   );

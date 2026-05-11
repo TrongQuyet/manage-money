@@ -80,6 +80,7 @@ export interface LoanRequest {
   adminNote: string | null;
   reviewedBy: number | null;
   reviewedAt: string | null;
+  repaymentDate: string | null;
   createdAt: string;
   updatedAt: string;
   member?: Member;

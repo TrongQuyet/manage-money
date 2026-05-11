@@ -30,6 +30,21 @@ const STATUS_COLOR: Record<LoanRequestStatus, string> = {
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n) + ' ₫';
 const fmtDate = (s: string) => new Date(s).toLocaleDateString('vi-VN');
 
+const countdownDays = (repaymentDate: string | null): number | null => {
+  if (!repaymentDate) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(repaymentDate);
+  due.setHours(0, 0, 0, 0);
+  return Math.round((due.getTime() - today.getTime()) / 86_400_000);
+};
+
+const countdownLabel = (days: number): string => {
+  if (days < 0) return `(Quá hạn ${Math.abs(days)} ngày)`;
+  if (days === 0) return '(Hôm nay)';
+  return `(còn ${days} ngày)`;
+};
+
 interface Props {
   orgSlug: string;
   isAdmin: boolean;
@@ -53,7 +68,7 @@ const LoanRequests: React.FC<Props> = ({ orgSlug, isAdmin, myMemberId }) => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ amount: '', reason: '' });
+  const [createForm, setCreateForm] = useState({ amount: '', amountDisplay: '', reason: '', repaymentDate: '' });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
 
@@ -105,15 +120,16 @@ const LoanRequests: React.FC<Props> = ({ orgSlug, isAdmin, myMemberId }) => {
     const amount = Number(createForm.amount);
     if (!amount || amount <= 0) { setCreateError('Số tiền không hợp lệ'); return; }
     if (createForm.reason.trim().length < 10) { setCreateError('Lý do cần ít nhất 10 ký tự'); return; }
+    if (!createForm.repaymentDate) { setCreateError('Vui lòng chọn ngày cam kết trả'); return; }
     setCreating(true);
-    const res = await api.createLoanRequest(orgSlug, { amount, reason: createForm.reason.trim() });
+    const res = await api.createLoanRequest(orgSlug, { amount, reason: createForm.reason.trim(), repaymentDate: createForm.repaymentDate });
     setCreating(false);
     if (res) {
       setShowCreateModal(false);
-      setCreateForm({ amount: '', reason: '' });
+      setCreateForm({ amount: '', amountDisplay: '', reason: '', repaymentDate: '' });
       fetchRequests();
     } else {
-      setCreateError('Không thể tạo yêu cầu. Có thể bạn đang có yêu cầu chưa xử lý.');
+      setCreateError('Không thể tạo yêu cầu. Kiểm tra số tiền, ngày hẹn trả hoặc bạn đang có yêu cầu chưa xử lý.');
     }
   };
 
@@ -209,7 +225,8 @@ const LoanRequests: React.FC<Props> = ({ orgSlug, isAdmin, myMemberId }) => {
                     <th className="text-left px-5 py-3 font-semibold">Số tiền</th>
                     <th className="text-left px-5 py-3 font-semibold hidden md:table-cell">Lý do</th>
                     <th className="text-left px-5 py-3 font-semibold">Trạng thái</th>
-                    <th className="text-left px-5 py-3 font-semibold hidden md:table-cell">Ngày tạo</th>
+                    <th className="text-left px-5 py-3 font-semibold hidden md:table-cell">Ngày trả</th>
+                    <th className="text-left px-5 py-3 font-semibold hidden md:table-cell">Còn lại</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
@@ -224,7 +241,23 @@ const LoanRequests: React.FC<Props> = ({ orgSlug, isAdmin, myMemberId }) => {
                           {STATUS_LABEL[r.status]}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-gray-400 hidden md:table-cell">{fmtDate(r.createdAt)}</td>
+                      <td className="px-5 py-3.5 text-gray-400 hidden md:table-cell">
+                        {r.repaymentDate ? fmtDate(r.repaymentDate) : '—'}
+                      </td>
+                      <td className="px-5 py-3.5 hidden md:table-cell">
+                        {(() => {
+                          if (!r.repaymentDate || (r.status !== 'PENDING_ADMIN' && r.status !== 'PENDING_VOTES' && r.status !== 'APPROVED')) return <span className="text-gray-300">—</span>;
+                          const days = countdownDays(r.repaymentDate);
+                          if (days === null) return <span className="text-gray-300">—</span>;
+                          if (days < 0) return <span className="text-xs font-semibold text-red-600">Quá hạn {Math.abs(days)} ngày</span>;
+                          if (days === 0) return <span className="text-xs font-semibold text-red-600">Hôm nay</span>;
+                          return (
+                            <span className={`text-xs font-semibold ${days <= 5 ? 'text-red-600' : 'text-gray-600'}`}>
+                              {days} ngày
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td className="px-5 py-3.5 text-right">
                         <button
                           onClick={() => openDetail(r.id)}
@@ -315,12 +348,31 @@ const LoanRequests: React.FC<Props> = ({ orgSlug, isAdmin, myMemberId }) => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Số tiền muốn vay (₫)</label>
                 <input
-                  type="number"
-                  min={1}
-                  value={createForm.amount}
-                  onChange={e => setCreateForm(p => ({ ...p, amount: e.target.value }))}
+                  type="text"
+                  inputMode="numeric"
+                  value={createForm.amountDisplay}
+                  onChange={e => {
+                    const raw = e.target.value.replaceAll(/\D/g, '');
+                    const num = raw ? Number(raw) : '';
+                    setCreateForm(p => ({
+                      ...p,
+                      amount: String(num),
+                      amountDisplay: num === '' ? '' : new Intl.NumberFormat('vi-VN').format(Number(num)),
+                    }));
+                  }}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                  placeholder="Ví dụ: 500000"
+                  placeholder="Ví dụ: 500.000"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ngày cam kết trả</label>
+                <input
+                  type="date"
+                  value={createForm.repaymentDate}
+                  onChange={e => setCreateForm(p => ({ ...p, repaymentDate: e.target.value }))}
+                  min={new Date(Date.now() + 86_400_000).toISOString().split('T')[0]}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                   required
                 />
               </div>
@@ -389,6 +441,22 @@ const LoanRequests: React.FC<Props> = ({ orgSlug, isAdmin, myMemberId }) => {
                     <p className="text-xs text-gray-400 mb-0.5">Ngày tạo</p>
                     <p className="text-sm text-gray-600">{fmtDate(detail.createdAt)}</p>
                   </div>
+                  {detail.repaymentDate && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Ngày cam kết trả</p>
+                      {(() => {
+                        const days = countdownDays(detail.repaymentDate);
+                        return (
+                          <p className={`text-sm font-semibold ${days !== null && days <= 5 ? 'text-red-600' : 'text-gray-700'}`}>
+                            {fmtDate(detail.repaymentDate)}
+                            {days !== null && (
+                              <span className="ml-2 text-xs font-normal">{countdownLabel(days)}</span>
+                            )}
+                          </p>
+                        );
+                      })()}
+                    </div>
+                  )}
                   {detail.adminNote && (
                     <div className="col-span-2">
                       <p className="text-xs text-gray-400 mb-0.5">Ghi chú admin</p>
