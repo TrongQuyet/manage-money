@@ -118,7 +118,8 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
       if (isSelf && !isAdmin) {
         updated = await api.updateOwnMember(orgSlug, { ...members.find(m => m.id === memberId)!, [apiField]: base64 });
       } else {
-        updated = await api.updateMember(orgSlug, memberId, { [apiField]: base64 });
+        const member = members.find(m => m.id === memberId) ?? editingMember!;
+        updated = await api.updateMember(orgSlug, memberId, { ...member, [apiField]: base64 });
       }
       if (updated) {
         setMembers(prev => prev.map(m => m.id === memberId ? { ...m, ...updated } : m));
@@ -267,8 +268,8 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
       {/* Member Detail Modal */}
       {selectedMember && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[70] p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
-            <div className="relative px-8 pt-8 pb-7 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in max-h-[90vh] flex flex-col">
+            <div className="relative px-8 pt-8 pb-7 bg-gradient-to-br from-slate-900 to-slate-800 text-white shrink-0">
               <button
                 onClick={() => setSelectedMember(null)}
                 className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors"
@@ -292,7 +293,7 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
               </div>
             </div>
 
-            <div className="p-7 space-y-3">
+            <div className="p-7 space-y-3 overflow-y-auto flex-1">
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { icon: <Mail size={14} />, label: 'Email', value: selectedMember.email },
@@ -309,18 +310,25 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
                   <p className="text-sm font-semibold text-gray-700">{selectedMember.address || 'Chưa cập nhật'}</p>
                 </div>
               </div>
-              {selectedMember.note && (
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
-                  <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1.5 mb-1"><StickyNote size={14} />Ghi chú</p>
-                  <p className="text-sm text-amber-800 italic">"{selectedMember.note}"</p>
-                </div>
-              )}
-              {selectedMember.bankQrUrl && (
-                <div className="p-3 bg-slate-50 rounded-xl">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mb-2"><QrCode size={14} />QR Ngân hàng</p>
-                  <img src={selectedMember.bankQrUrl ?? ''} alt="QR ngân hàng" className="w-full max-w-[200px] mx-auto rounded-lg" />
-                </div>
-              )}
+              <div className={`p-3 rounded-xl border ${selectedMember.note ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-100'}`}>
+                <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1 ${selectedMember.note ? 'text-amber-500' : 'text-gray-400'}`}>
+                  <StickyNote size={14} />Ghi chú
+                </p>
+                <p className={`text-sm ${selectedMember.note ? 'text-amber-800 italic' : 'text-gray-400'}`}>
+                  {selectedMember.note ? `"${selectedMember.note}"` : 'Chưa có ghi chú'}
+                </p>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mb-2"><QrCode size={14} />QR Ngân hàng</p>
+                {selectedMember.bankQrUrl ? (
+                  <img src={selectedMember.bankQrUrl} alt="QR ngân hàng" className="w-full max-w-[200px] mx-auto rounded-lg" />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 py-4 text-gray-300">
+                    <QrCode size={40} />
+                    <p className="text-xs">Chưa cập nhật QR</p>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={() => setSelectedMember(null)}
                 className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-200 active:scale-95"
@@ -382,14 +390,15 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
       {/* Edit Modal */}
       {editingMember && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[70] p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
-            <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-indigo-900 to-blue-900 flex items-center justify-between">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in max-h-[90vh] flex flex-col">
+            <div className="px-7 pt-7 pb-6 bg-gradient-to-br from-indigo-900 to-blue-900 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-lg font-bold text-white">Chỉnh sửa thành viên</h3>
                 <p className="text-indigo-300 text-xs mt-0.5">Cập nhật thông tin thành viên</p>
               </div>
               <button onClick={() => setEditingMember(null)} className="p-2 hover:bg-white/10 rounded-xl text-indigo-300"><X size={18}/></button>
             </div>
+            <div className="overflow-y-auto flex-1">
             <form onSubmit={handleUpdateSubmit} className="p-7 grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Upload avatar + bank QR */}
               <div className="md:col-span-2 flex gap-4 items-start">
@@ -510,6 +519,7 @@ const MemberManagement: React.FC<Props> = ({ orgSlug, refreshKey, onAddMember, o
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       )}
