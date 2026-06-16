@@ -19,7 +19,10 @@ RUN npm run build
 FROM nginx:alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf.template /tmp/nginx.conf.template
+ARG BACKEND_URL=http://manage-money-api:3334
+RUN envsubst '${BACKEND_URL}' < /tmp/nginx.conf.template > /etc/nginx/conf.d/default.conf && \
+    rm /tmp/nginx.conf.template
 
 EXPOSE 80
 
